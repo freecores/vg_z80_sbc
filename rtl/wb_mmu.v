@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_mmu.v,v 1.1 2008-12-01 02:00:10 hharte Exp $            ////
+////  $Id: wb_mmu.v,v 1.2 2008-12-02 15:15:37 hharte Exp $        ////
 ////  wb_mmu.v - Simple Memory Mapping Unit with Wishbone         ////
 ////             Slave interface for configuration.               ////
 ////                                                              ////
@@ -83,75 +83,75 @@ module wb_mmu(
     parameter dw = 32; //number of data-bits
 
     // Wishbone Slave Interface
-    input   clk_i;
-    input   nrst_i;
-    input   [aw-1:0] wbs_adr_i;
-    output  reg [dw-1:0] wbs_dat_o;
-    input   [dw-1:0] wbs_dat_i;
-    input   [3:0] wbs_sel_i;
-    input   wbs_we_i;
-    input   wbs_stb_i;
-    input   wbs_cyc_i;
-    output  reg wbs_ack_o;
+    input          clk_i;
+    input          nrst_i;
+    input [aw-1:0] wbs_adr_i;
+    output reg [dw-1:0] wbs_dat_o;
+    input [dw-1:0] wbs_dat_i;
+    input    [3:0] wbs_sel_i;
+    input          wbs_we_i;
+    input          wbs_stb_i;
+    input          wbs_cyc_i;
+    output  reg    wbs_ack_o;
     
     // MMU Address Interface
     output  [23:0] mmu_adr_o;
     input   [23:0] mmu_adr_i;
 
     // Internal storage for mapping and state information
-    reg [11:0] mmu_lut[0:15];
-    reg [3:0] adr_index;
-    reg       mmu_lock;
+    reg     [11:0] mmu_lut[0:15];
+    reg      [3:0] adr_index;
+    reg            mmu_lock;
 
     //
     // generate wishbone register bank writes
     wire wbs_acc = wbs_cyc_i & wbs_stb_i;    // WISHBONE access
     wire wbs_wr  = wbs_acc & wbs_we_i;       // WISHBONE write access
     wire wbs_rd  = wbs_acc & !wbs_we_i;      // WISHBONE read access
-    reg [4:0] i;
+    reg      [4:0] i;
 
     always @(posedge clk_i or negedge nrst_i)
-        if(~nrst_i)     // Reset
+        if(~nrst_i) // Reset
         begin
             wbs_ack_o <= 1'b0;
             adr_index <= 4'b0;
             mmu_lock <= 1'b1;               // Lock MMU on reset
-				
+                
             // Initial values for MMU mapping table.
-            mmu_lut[0]  <= 12'h100;      // 0x0xxx - Shadow of Monitor, only used to jump to monitor at 0xE000.
+            mmu_lut[0]  <= 12'h101;      // 0x0xxx - Shadow of Monitor, only used to jump to monitor at 0xE000.
                                          // But not the same copy as at E000, because the init patches RST38.        
-            mmu_lut[1]  <= 12'h801;      // 0x1000
-				mmu_lut[2]  <= 12'h802;      // 0x2000
-				mmu_lut[3]  <= 12'h803;      // 0x3000
-				mmu_lut[4]  <= 12'h804;      // 0x4000
-				mmu_lut[5]  <= 12'h805;      // 0x5000
-				mmu_lut[6]  <= 12'h806;      // 0x6000
-				mmu_lut[7]  <= 12'h807;      // 0x7000
-				mmu_lut[8]  <= 12'h808;      // 0x8000
-				mmu_lut[9]  <= 12'h809;      // 0x9000
-				mmu_lut[10] <= 12'h80A;      // 0xA000
-				mmu_lut[11] <= 12'h80B;      // 0xB000
-				mmu_lut[12] <= 12'h200;      // 0xC000 - FLASH (ZMON)
-				mmu_lut[13] <= 12'hF02;      // 0xD000 - MMU
-				mmu_lut[14] <= 12'h100;      // 0xE000 - FLASH (MON4.3)
-				mmu_lut[15] <= 12'h600;      // 0xF000 - VGA
+            mmu_lut[1]  <= 12'h102;      // 0x1000
+            mmu_lut[2]  <= 12'h103;      // 0x2000
+            mmu_lut[3]  <= 12'h101;      // 0x3000
+            mmu_lut[4]  <= 12'h102;      // 0x4000
+            mmu_lut[5]  <= 12'h103;      // 0x5000
+            mmu_lut[6]  <= 12'h101;      // 0x6000
+            mmu_lut[7]  <= 12'h102;      // 0x7000
+            mmu_lut[8]  <= 12'h803;      // 0x8000
+            mmu_lut[9]  <= 12'h809;      // 0x9000
+            mmu_lut[10] <= 12'h80A;      // 0xA000
+            mmu_lut[11] <= 12'h80B;      // 0xB000
+            mmu_lut[12] <= 12'h200;      // 0xC000 - FLASH (ZMON)
+            mmu_lut[13] <= 12'hF02;      // 0xD000 - MMU
+            mmu_lut[14] <= 12'h100;      // 0xE000 - FLASH (MON4.3)
+            mmu_lut[15] <= 12'h600;      // 0xF000 - VGA
         end
         else begin
             if(wbs_wr)  // Wishbone Write, decode byte enables to determine register offset.
                 case(wbs_sel_i)
-                    4'b0001:    begin   // Data L Register
+                    4'b0001: begin   // Data L Register
                         if(mmu_lock == 1'b0)
                             mmu_lut[adr_index[3:0]][7:0] <= wbs_dat_i[7:0];
                     end
-                    4'b0010:    begin   // Data H Register
+                    4'b0010: begin   // Data H Register
                         if(mmu_lock == 1'b0)
                             mmu_lut[adr_index[3:0]][11:8] <= wbs_dat_i[11:8];
                     end
-                    4'b0100:    begin   // Index Register
+                    4'b0100: begin   // Index Register
                         adr_index <= wbs_dat_i[19:16];
                     end
-                    4'b1000:    begin   // Lock Register
-                       if(wbs_dat_i[31:24] == 8'hA5) begin
+                    4'b1000: begin   // Lock Register
+                        if(wbs_dat_i[31:24] == 8'hA5) begin
                             mmu_lock <= 1'b0;
                         end else begin
                             mmu_lock <= 1'b1;
@@ -161,16 +161,16 @@ module wb_mmu(
 
             if(wbs_rd) begin
                 case(wbs_sel_i) // Wishbone Read, decode byte enables to determine register offset.
-                    4'b0001:    begin   // Data L Register
+                    4'b0001: begin   // Data L Register
                         wbs_dat_o <= {20'b0, mmu_lut[adr_index[3:0]]};
                     end
-                    4'b0010:    begin   // Data H Register
+                    4'b0010: begin   // Data H Register
                         wbs_dat_o <= {20'b0, mmu_lut[adr_index[3:0]]};
                     end
-                    4'b0100:    begin   // Index Register
+                    4'b0100: begin   // Index Register
                         wbs_dat_o <= {20'b0, adr_index, 8'b0};
                     end
-                    4'b1000:    begin   // Lock Register
+                    4'b1000: begin   // Lock Register
                         wbs_dat_o <= {4'h5, 3'b0, mmu_lock, 24'b0};
                     end
                 endcase

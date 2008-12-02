@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: top_vg_z80.v,v 1.1 2008-12-01 02:00:10 hharte Exp $        ////
+////  $Id: top_vg_z80.v,v 1.2 2008-12-02 15:15:37 hharte Exp $        ////
 ////  top_sk_z80.v - Z80 SBC Based on Xilinx S3E Starter Kit      ////
 ////                 Top-Level                                    ////
 ////                                                              ////
@@ -62,6 +62,38 @@
 //| <h>:<llxxx>
 //| 
 //| This provides for 16MB of address space from 64K,
+//|
+//| In the Z80's 64K address space, the mapping is configured by default as
+//| follows:
+//|
+//| 0000-0FFF - 4K SRAM containing shadow copy of Monitor, only used to jump to monitor at 0xE000.
+//| 1000-1FFF - 4K SRAM
+//| 2000-2FFF - 4K SRAM
+//| 3000-3FFF - Shadow of 0000-0FFF
+//| 4000-4FFF - Shadow of 1000-1FFF
+//| 5000-5FFF - Shadow of 2000-2FFF
+//| 6000-6FFF - Shadow of 0000-0FFF
+//| 7000-7FFF - Shadow of 1000-1FFF
+//| 8000-8FFF - SDRAM
+//| 9000-9FFF - SDRAM
+//| A000-AFFF - SDRAM
+//| B000-BFFF - SDRAM
+//| C000-CFFF - FLASH
+//| D000-DFFF - Memory Mapping Unit Registers (should be moved to I/O space...)
+//| E000-EFFF - 4K SRAM Containing Vector Graphics Monitor 4.3
+//| F000-FFFF - Flashwriter 2 Dual-port SRAM
+//|
+//| This design runs on the Xilinx Spartan-3E Starter Kit with XC3S500E FPGA.
+//| There are issues with the SDRAM controller, but everything else seems to
+//| work fine.
+//|
+//| It is possible to program the Monitor into FLASH, and change the memory
+//| mapping to use that instead of SRAM.  Then a full 16K of SRAM can be
+//| available for user programs.  There is aso slightly more than 2K of RAM
+//| available above the display-visible area of the Flashwriter2, from
+//| F780-FFFFh.  This can be used as general-purpose RAM, but be aware that
+//| the monitor uses some of this RAM for its stack and some temporary
+//| variables.
 //+---------------------------------------------------------------------------+
 
 `include "ddr_include.v"
@@ -307,7 +339,7 @@ wire        wb_ram_cyc_i;
 wire        wb_ram_ack_o;
 wire [14:0] wb_ram_adr_i;
 
-wb_sram8 sram0 (
+wb_sram sram0 (
     .clk_i(PCI_CLK), 
     .nrst_i(NRST), 
     .wb_adr_i(wb_ram_adr_i), 
