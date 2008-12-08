@@ -1,8 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_sram.v,v 1.1 2008-12-02 15:15:37 hharte Exp $        ////
-////  wb_mmu.v - Simple Memory Mapping Unit with Wishbone         ////
-////             Slave interface for configuration.               ////
+////  $Id: wb_sram.v,v 1.2 2008-12-08 02:09:19 hharte Exp $       ////
+////  wb_mmu.v - SRAM with Wishbone Slave interface.              ////
 ////                                                              ////
 ////  This file is part of the Vector Graphic Z80 SBC Project     ////
 ////  http://www.opencores.org/projects/vg_z80_sbc/               ////
@@ -36,7 +35,12 @@
 //// from http://www.opencores.org/lgpl.shtml                     ////
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
-module wb_sram(
+module wb_sram
+#(
+    parameter mem_file_name = "none",
+    parameter adr_width = 14,
+    parameter dat_width = 8
+) (
     // Generic synchronous single-port RAM interface
     clk_i, nrst_i, wb_adr_i, wb_dat_o, wb_dat_i, wb_sel_i, wb_we_i,
     wb_stb_i, wb_cyc_i, wb_ack_o
@@ -80,15 +84,15 @@ module wb_sram(
     assign wb_dat_o = {sram_dat_o, sram_dat_o, sram_dat_o, sram_dat_o};
     assign sram_dat_i = wb_sel_i == 4'b0001 ? wb_dat_i[7:0] : wb_sel_i == 4'b0010 ? wb_dat_i[15:8] : wb_sel_i == 4'b0100 ? wb_dat_i[23:16] : wb_dat_i[31:24];
 
-// Instantiate the Monitor RAM (16K, initialized with Monitor ROM)
-// synthesis attribute ram_style of font_ram is block
-sram16k #(
-    .mem_file_name("../mon43/MON43x.mem"),
-    .adr_width(14),
-    .dat_width(8)
-) sram16k0 (
+// Instantiate the memory using Block RAM
+// synthesis attribute ram_style of sram_block is block
+sram_block #(
+    .mem_file_name(mem_file_name),
+    .adr_width(adr_width),
+    .dat_width(dat_width)
+) sram_block0 (
     .clk(clk_i),
-    .adr({wb_adr_i[13:2],adr_low}),
+    .adr({wb_adr_i[adr_width-1:2],adr_low}),
     .dout(sram_dat_o),
     .din(sram_dat_i),  
     .we(wb_wr)
@@ -96,7 +100,7 @@ sram16k #(
 
 endmodule
 
-module sram16k
+module sram_block
 #(
     parameter mem_file_name = "none",
     parameter adr_width = 14,
