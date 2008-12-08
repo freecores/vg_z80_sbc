@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_vhdfd.v,v 1.2 2008-12-08 02:34:19 hharte Exp $      ////
+////  $Id: wb_vhdfd.v,v 1.3 2008-12-08 06:55:36 hharte Exp $      ////
 ////  wb_vhdfd.v - Vector Graphic HD/FD Disk Controller with      ////
 ////               Wishbone Slave interface.                      ////
 ////                                                              ////
@@ -57,16 +57,16 @@ module wb_vhdfd (clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_
                  flash_adr_o,flash_dat_o, flash_dat_i, flash_oe, flash_ce, flash_we
                  );
 
-	input		      clk_i;
-	input 	          nrst_i;
-	input 	    [2:0] wbs_adr_i;
-	output reg  [8:0] wbs_dat_o;
+    input             clk_i;
+    input             nrst_i;
+    input       [2:0] wbs_adr_i;
+    output reg  [8:0] wbs_dat_o;
   	input 	    [8:0] wbs_dat_i;
-	input 	    [3:0] wbs_sel_i;
+    input 	    [3:0] wbs_sel_i;
   	input 	          wbs_we_i;
-	input 	          wbs_stb_i;
-	input 	          wbs_cyc_i;
-	output reg        wbs_ack_o;
+    input 	          wbs_stb_i;
+    input 	          wbs_cyc_i;
+    output reg        wbs_ack_o;
 
     // FLASH Interface
     output     [23:0] flash_adr_o;

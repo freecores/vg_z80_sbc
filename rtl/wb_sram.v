@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_sram.v,v 1.2 2008-12-08 02:09:19 hharte Exp $       ////
-////  wb_mmu.v - SRAM with Wishbone Slave interface.              ////
+////  $Id: wb_sram.v,v 1.3 2008-12-08 06:55:36 hharte Exp $       ////
+////  wb_sram.v - SRAM with Wishbone Slave interface.             ////
 ////                                                              ////
 ////  This file is part of the Vector Graphic Z80 SBC Project     ////
 ////  http://www.opencores.org/projects/vg_z80_sbc/               ////
