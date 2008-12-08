@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_vhdfd.v,v 1.1 2008-12-08 02:12:03 hharte Exp $      ////
+////  $Id: wb_vhdfd.v,v 1.2 2008-12-08 02:34:19 hharte Exp $      ////
 ////  wb_vhdfd.v - Vector Graphic HD/FD Disk Controller with      ////
 ////               Wishbone Slave interface.                      ////
 ////                                                              ////
@@ -94,7 +94,7 @@ module wb_vhdfd (clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_
     wire              disk_read = ctrl1[5];
 
     // STATUS0 bits
-    wire     wp = 1'b1;     // Write protected, controller can't write to FLASH
+    wire     wp = 1'b0;     // Write protected, controller can't write to FLASH
     wire     track0 = (curr_track[ds] == 11'h0);
 
     // STATUS1 bits
@@ -219,7 +219,7 @@ vhdfd_disk disks (
 // Instantiate the Sector RAM (512 bytes)
 // synthesis attribute ram_style of sector_ram is block
 vga_dpram #(
-    .mem_file_name("none"),
+    .mem_file_name("../mon43/sector0.mem"),
     .adr_width(9),
     .dat_width(8)
 ) sector_ram (
