@@ -181,7 +181,7 @@ begin
 		if (wb_rd & ~ack) begin
 			ack <= 1;
 
-			case (wb_adr_i[4:2])
+			case (wb_adr_i[2:0])
 			3'b000: begin
 				wb_dat_o[7:0] <= kbdsr;
 			end

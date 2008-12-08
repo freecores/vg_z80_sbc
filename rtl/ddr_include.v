@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------------
 // Frequency and timeouts
 //---------------------------------------------------------------------------
-`define SYS_CLK_FREQUENCY   50000     // in kHz
+`define SYS_CLK_FREQUENCY   25000     // in kHz
 `define DDR_CLK_MULTIPLY    5        
 `define DDR_CLK_DIVIDE      2
 
