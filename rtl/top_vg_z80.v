@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: top_vg_z80.v,v 1.2 2008-12-02 15:15:37 hharte Exp $        ////
+////  $Id: top_vg_z80.v,v 1.3 2008-12-08 02:15:44 hharte Exp $    ////
 ////  top_sk_z80.v - Z80 SBC Based on Xilinx S3E Starter Kit      ////
 ////                 Top-Level                                    ////
 ////                                                              ////
@@ -42,9 +42,9 @@
 //| 
 //| 0:00000 - Wishbone I/O
 //| 1:00000 - SRAM (32k)
-//| 2:00000 - FLASH (512K)
+//| 2:00000 - FLASH (512K) (really 4K SRAM for now)
 //| 6:00000 - VGA Controller
-//| 8:00000 - DDR SDRAM
+//| 8:00000 - DDR SDRAM    (really 8K SRAM for now)
 //| E:00000 - PS2 Keyboard
 //| F:00000 - MMU
 //| 
@@ -83,13 +83,20 @@
 //| E000-EFFF - 4K SRAM Containing Vector Graphics Monitor 4.3
 //| F000-FFFF - Flashwriter 2 Dual-port SRAM
 //|
+//| I/O Port Map
+//| 00-1F - Keyboard, UARTs
+//| 38-3F - UART
+//| 40-5F - CPU Control
+//| 60-63 - MMU
+//| 80-BF - spiMaster
+//| C0-C7 - HD/FD Disk Controller
+//| E0-FF - FPB
+//| 
 //| This design runs on the Xilinx Spartan-3E Starter Kit with XC3S500E FPGA.
 //| There are issues with the SDRAM controller, but everything else seems to
 //| work fine.
 //|
-//| It is possible to program the Monitor into FLASH, and change the memory
-//| mapping to use that instead of SRAM.  Then a full 16K of SRAM can be
-//| available for user programs.  There is aso slightly more than 2K of RAM
+//| There is slightly more than 2K of RAM
 //| available above the display-visible area of the Flashwriter2, from
 //| F780-FFFFh.  This can be used as general-purpose RAM, but be aware that
 //| the monitor uses some of this RAM for its stack and some temporary
@@ -143,7 +150,13 @@ module vg_z80_sbc
     SD_WE,
     SD_CK_FB,
 
-    rot
+    rot,
+    
+    SD_SPI_CLK, 
+    SD_SPI_MISO, 
+    SD_SPI_MOSI, 
+    SD_SPI_CS_N    
+    
 );
 
 input         CLK ;
@@ -171,6 +184,8 @@ output             hsync, vsync, R, G, B;
 inout              PS2_KBD_CLK;
 inout              PS2_KBD_DAT;
 
+// The DDR interface has problems.  Seems like the caching has trouble.  It is commented out for now,
+// and 8K of SRAM is in its place.
 // DDR Interface
 //output [12:0]  SD_A;
 //output  [1:0]  SD_BA;
@@ -195,11 +210,16 @@ output [ `DM_RNG]  SD_DM;
 
 input  [2:0]       rot;
 
+output    SD_SPI_CLK;
+input     SD_SPI_MISO;
+output    SD_SPI_MOSI; 
+output    SD_SPI_CS_N;   
+
 wire    NRST = !RST;
 
 wire  [7:0] flash_dat_i;
 wire  [7:0] flash_dat_o;
-wire [18:0] flash_adr_o;
+wire [23:0] flash_adr_o;
 wire        flash_ce_o, flash_oe_o, flash_we_o;
 
 reg clk25mhz;
@@ -213,7 +233,7 @@ always @(posedge CLK or posedge RST)
             clk25mhz <= !clk25mhz;
         end
 
-assign FLASH_A = {5'b0,flash_adr_o};
+assign FLASH_A = flash_adr_o; //{5'b0,flash_adr_o};
 assign FLASH_D = (!flash_we_o) ? flash_dat_o : 8'bZZZZZZZZ;
 assign flash_dat_i = FLASH_D;
 assign FLASH_CE = flash_ce_o;
@@ -307,7 +327,7 @@ wire        wb_cpu_ctrl_we_i;
 wire        wb_cpu_ctrl_stb_i;
 wire        wb_cpu_ctrl_cyc_i;
 wire        wb_cpu_ctrl_ack_o;
-wire  [5:0] wb_cpu_ctrl_adr_i;
+wire  [2:0] wb_cpu_ctrl_adr_i;
 wire [31:0] cpu_ctrl_reg0;
 wire [31:0] cpu_ctrl_reg1;
 
@@ -339,7 +359,12 @@ wire        wb_ram_cyc_i;
 wire        wb_ram_ack_o;
 wire [14:0] wb_ram_adr_i;
 
-wb_sram sram0 (
+// Instantiate 16K SRAM initialized with Vector Monitor 4.3 ROM
+wb_sram #(
+    .mem_file_name("../mon43/MON43x.mem"),
+    .adr_width(14),
+    .dat_width(8)
+) sram0 (
     .clk_i(PCI_CLK), 
     .nrst_i(NRST), 
     .wb_adr_i(wb_ram_adr_i), 
@@ -474,14 +499,17 @@ wb_uart #(
 wire [31:0] wbs_flash_dat_o; 
 wire        wbs_flash_ack_o; 
 wire [31:0] wbs_flash_dat_i; 
-wire                wbs_flash_we_i; 
+wire        wbs_flash_we_i; 
 wire  [3:0] wbs_flash_sel_i;
 wire [18:0] wbs_flash_adr_i;
 wire        wbs_flash_cyc_i; 
 wire        wbs_flash_stb_i; 
 
-// Instantiate the FLASH Memory Interface
-wb_flash flash0 (
+// Instantiate 4K of SRAM instead of FLASH controller.  FLASH is used for VHDFD Storage
+wb_sram #(
+    .adr_width(12),
+    .dat_width(8)
+) sram2 (
     .clk_i(PCI_CLK), 
     .nrst_i(NRST), 
     .wb_adr_i(wbs_flash_adr_i), 
@@ -491,14 +519,28 @@ wb_flash flash0 (
     .wb_we_i(wbs_flash_we_i), 
     .wb_stb_i(wbs_flash_stb_i), 
     .wb_cyc_i(wbs_flash_cyc_i), 
-    .wb_ack_o(wbs_flash_ack_o), 
-    .flash_adr_o(flash_adr_o), 
-    .flash_dat_o(flash_dat_o), 
-    .flash_dat_i(flash_dat_i), 
-    .flash_oe(flash_oe_o), 
-    .flash_ce(flash_ce_o), 
-    .flash_we(flash_we_o)
+    .wb_ack_o(wbs_flash_ack_o)
     );
+
+// Instantiate the FLASH Memory Interface
+//wb_flash flash0 (
+//    .clk_i(PCI_CLK), 
+//    .nrst_i(NRST), 
+//    .wb_adr_i(wbs_flash_adr_i), 
+//    .wb_dat_o(wbs_flash_dat_o), 
+//    .wb_dat_i(wbs_flash_dat_i), 
+//    .wb_sel_i(wbs_flash_sel_i), 
+//    .wb_we_i(wbs_flash_we_i), 
+//    .wb_stb_i(wbs_flash_stb_i), 
+//    .wb_cyc_i(wbs_flash_cyc_i), 
+//    .wb_ack_o(wbs_flash_ack_o), 
+//    .flash_adr_o(flash_adr_o), 
+//    .flash_dat_o(flash_dat_o), 
+//    .flash_dat_i(flash_dat_i), 
+//    .flash_oe(flash_oe_o), 
+//    .flash_ce(flash_ce_o), 
+//    .flash_we(flash_we_o)
+//    );
 
 wire [31:0] wbs_ddr_dat_o; 
 wire        wbs_ddr_ack_o; 
@@ -509,59 +551,91 @@ wire [19:0] wbs_ddr_adr_i;
 wire        wbs_ddr_cyc_i; 
 wire        wbs_ddr_stb_i; 
 
-// Instantiate the DDR SDRAM Controller
-// (This is not working properly at the moment... not sure why.)
-wb_ddr #(
-    .phase_shift(0),
-    .clk_multiply(12), //15), //13),
-    .clk_divide(3),
-    .wait200_init(26)
-) ddr0 (
-    .clk(PCI_CLK), 
-    .reset(RST), 
-    .rot(rot), 
-    .ddr_clk(SD_CK_P), 
-    .ddr_clk_n(SD_CK_N), 
-    .ddr_clk_fb(SD_CK_FB), 
-    .ddr_ras_n(SD_RAS), 
-    .ddr_cas_n(SD_CAS), 
-    .ddr_we_n(SD_WE), 
-    .ddr_cke(SD_CKE), 
-    .ddr_cs_n(SD_CS), 
-    .ddr_a(SD_A), 
-    .ddr_ba(SD_BA), 
-    .ddr_dq(SD_DQ), 
-    .ddr_dqs(SD_DQS), 
-    .ddr_dm(SD_DM), 
-    .wb_adr_i({12'b0, wbs_ddr_adr_i}), 
-    .wb_dat_i(wbs_ddr_dat_i), 
+// Instantiate 8K SRAM instead of DDR Controller
+wb_sram #(
+    .mem_file_name("none"),
+    .adr_width(13),
+    .dat_width(8)
+) sram1 (
+    .clk_i(PCI_CLK), 
+    .nrst_i(NRST), 
+    .wb_adr_i(wbs_ddr_adr_i[13:0]), 
     .wb_dat_o(wbs_ddr_dat_o), 
+    .wb_dat_i(wbs_ddr_dat_i), 
     .wb_sel_i(wbs_ddr_sel_i), 
-    .wb_cyc_i(wbs_ddr_cyc_i), 
-    .wb_stb_i(wbs_ddr_stb_i), 
     .wb_we_i(wbs_ddr_we_i), 
-    .wb_ack_o(wbs_ddr_ack_o) 
+    .wb_stb_i(wbs_ddr_stb_i), 
+    .wb_cyc_i(wbs_ddr_cyc_i), 
+    .wb_ack_o(wbs_ddr_ack_o)
     );
+
+//
+//// Instantiate the DDR SDRAM Controller
+//// (This is not working properly at the moment... not sure why.)
+//wb_ddr #(
+//    .phase_shift(0),
+//    .clk_multiply(12), //15), //13),
+//    .clk_divide(3),
+//    .wait200_init(26)
+//) ddr0 (
+//    .clk(PCI_CLK), 
+//    .reset(RST), 
+//    .rot(rot), 
+//    .ddr_clk(SD_CK_P), 
+//    .ddr_clk_n(SD_CK_N), 
+//    .ddr_clk_fb(SD_CK_FB), 
+//    .ddr_ras_n(SD_RAS), 
+//    .ddr_cas_n(SD_CAS), 
+//    .ddr_we_n(SD_WE), 
+//    .ddr_cke(SD_CKE), 
+//    .ddr_cs_n(SD_CS), 
+//    .ddr_a(SD_A), 
+//    .ddr_ba(SD_BA), 
+//    .ddr_dq(SD_DQ), 
+//    .ddr_dqs(SD_DQS), 
+//    .ddr_dm(SD_DM), 
+//    .wb_adr_i({12'b0, wbs_ddr_adr_i}), 
+//    .wb_dat_i(wbs_ddr_dat_i), 
+//    .wb_dat_o(wbs_ddr_dat_o), 
+//    .wb_sel_i(wbs_ddr_sel_i), 
+//    .wb_cyc_i(wbs_ddr_cyc_i), 
+//    .wb_stb_i(wbs_ddr_stb_i), 
+//    .wb_we_i(wbs_ddr_we_i), 
+//    .wb_ack_o(wbs_ddr_ack_o) 
+//    );
+
 
 wire [31:0] wbs_mmu_dat_o; 
 wire        wbs_mmu_ack_o; 
 wire [31:0] wbs_mmu_dat_i; 
 wire        wbs_mmu_we_i; 
 wire  [3:0] wbs_mmu_sel_i;
-wire  [9:0] wbs_mmu_adr_i;
+wire  [1:0] wbs_mmu_adr_i;
 wire        wbs_mmu_cyc_i; 
 wire        wbs_mmu_stb_i; 
 
 wire [15:0] mmu_adr_i = wb_z80_adr_o[15:0];
 wire [23:0] mmu_adr_o;
 
+wire  [1:0] mmu_slave_adr_low;
+wire  [7:0] mmu_dat_i;
+
+assign mmu_dat_i = wbs_mmu_sel_i == 4'b0001 ? wbs_mmu_dat_i[7:0] : 
+                     wbs_mmu_sel_i == 4'b0010 ? wbs_mmu_dat_i[15:8] : 
+                     wbs_mmu_sel_i == 4'b0100 ? wbs_mmu_dat_i[23:16] : 
+                     wbs_mmu_dat_i[31:24];
+
+assign mmu_slave_adr_low = wbs_mmu_sel_i == 4'b0001 ? 2'b00 : 
+                       wbs_mmu_sel_i == 4'b0010 ? 2'b01 : 
+                       wbs_mmu_sel_i == 4'b0100 ? 2'b10 : 2'b11;
+
 // Instantiate the Memory Management Unit
 wb_mmu mmu0 (
     .clk_i(PCI_CLK), 
     .nrst_i(NRST), 
-    .wbs_adr_i(wbs_mmu_adr_i), 
+    .wbs_adr_i(mmu_slave_adr_low), 
     .wbs_dat_o(wbs_mmu_dat_o), 
-    .wbs_dat_i(wbs_mmu_dat_i), 
+    .wbs_dat_i(mmu_dat_i), 
     .wbs_sel_i(wbs_mmu_sel_i), 
     .wbs_we_i(wbs_mmu_we_i), 
     .wbs_stb_i(wbs_mmu_stb_i), 
@@ -570,6 +644,144 @@ wb_mmu mmu0 (
     .mmu_adr_i(mmu_adr_i), 
     .mmu_adr_o(mmu_adr_o)
     );
+
+// Instantiate the Vector HD-FD Disk Controller
+wire [31:0] wbs_vhdfd_dat_o;
+wire [31:0] wbs_vhdfd_dat_i;
+wire  [3:0] wbs_vhdfd_sel_i;
+wire        wbs_vhdfd_we_i;
+wire        wbs_vhdfd_stb_i;
+wire        wbs_vhdfd_cyc_i;
+wire        wbs_vhdfd_ack_o;
+wire  [2:0] wbs_vhdfd_adr_i;
+wire  [2:0] vhdfd_adr_i;
+wire  [1:0] vhdfd_adr_low;
+wire  [7:0] vhdfd_dat_i;
+
+assign vhdfd_dat_i = wbs_vhdfd_sel_i == 4'b0001 ? wbs_vhdfd_dat_i[7:0] : 
+                     wbs_vhdfd_sel_i == 4'b0010 ? wbs_vhdfd_dat_i[15:8] : 
+                     wbs_vhdfd_sel_i == 4'b0100 ? wbs_vhdfd_dat_i[23:16] : 
+                     wbs_vhdfd_dat_i[31:24];
+
+assign vhdfd_adr_low = wbs_vhdfd_sel_i == 4'b0001 ? 2'b00 : 
+                       wbs_vhdfd_sel_i == 4'b0010 ? 2'b01 : 
+                       wbs_vhdfd_sel_i == 4'b0100 ? 2'b10 : 2'b11;
+
+assign vhdfd_adr_i = {wbs_vhdfd_adr_i[2], vhdfd_adr_low};
+
+
+wb_vhdfd vfdhd0 (
+    .clk_i(PCI_CLK), 
+    .nrst_i(NRST), 
+    .wbs_adr_i(vhdfd_adr_i[2:0]), 
+    .wbs_dat_o(wbs_vhdfd_dat_o), 
+    .wbs_dat_i(vhdfd_dat_i), 
+    .wbs_sel_i(wbs_vhdfd_sel_i), 
+    .wbs_we_i(wbs_vhdfd_we_i), 
+    .wbs_stb_i(wbs_vhdfd_stb_i), 
+    .wbs_cyc_i(wbs_vhdfd_cyc_i), 
+    .wbs_ack_o(wbs_vhdfd_ack_o),
+    .flash_adr_o(flash_adr_o), 
+    .flash_dat_o(flash_dat_o), 
+    .flash_dat_i(flash_dat_i), 
+    .flash_oe(flash_oe_o), 
+    .flash_ce(flash_ce_o), 
+    .flash_we(flash_we_o)
+    );
+
+// Instantiate the spimaster Controller
+wire [31:0] wbs_spimaster_dat_o;
+wire [31:0] wbs_spimaster_dat_i;
+wire  [3:0] wbs_spimaster_sel_i;
+wire        wbs_spimaster_we_i;
+wire        wbs_spimaster_stb_i;
+wire        wbs_spimaster_cyc_i;
+wire        wbs_spimaster_ack_o;
+wire  [5:0] wbs_spimaster_adr_i;
+wire  [7:0] spimaster_dat_i;
+wire  [7:0] spimaster_adr_i;
+wire  [1:0] spimaster_adr_low;
+
+assign spimaster_dat_i = wbs_spimaster_sel_i == 4'b0001 ? wbs_spimaster_dat_i[7:0] : 
+                         wbs_spimaster_sel_i == 4'b0010 ? wbs_spimaster_dat_i[15:8] : 
+                         wbs_spimaster_sel_i == 4'b0100 ? wbs_spimaster_dat_i[23:16] : 
+                         wbs_spimaster_dat_i[31:24];
+
+assign spimaster_adr_low = wbs_spimaster_sel_i == 4'b0001 ? 2'b00 : 
+                           wbs_spimaster_sel_i == 4'b0010 ? 2'b01 : 
+                           wbs_spimaster_sel_i == 4'b0100 ? 2'b10 : 2'b11;
+
+assign spimaster_adr_i = {2'b00, wbs_spimaster_adr_i[5:2], spimaster_adr_low};
+
+wire [31:0] cpu_ctrl1_reg0;
+wire [31:0] cpu_ctrl1_reg1;
+
+wb_cpu_ctrl cpu_ctrl1 (
+    .clk_i(PCI_CLK), 
+    .nrst_i(NRST), 
+    .wb_adr_i(wbs_spimaster_adr_i[2:0]), 
+    .wb_dat_o(wbs_spimaster_dat_o), 
+    .wb_dat_i(wbs_spimaster_dat_i), 
+    .wb_sel_i(wbs_spimaster_sel_i), 
+    .wb_we_i(wbs_spimaster_we_i), 
+    .wb_stb_i(wbs_spimaster_stb_i), 
+    .wb_cyc_i(wbs_spimaster_cyc_i), 
+    .wb_ack_o(wbs_spimaster_ack_o),
+    .datareg0(cpu_ctrl1_reg0),
+    .datareg1(cpu_ctrl1_reg1)
+    );
+
+//spiMaster spimaster0 (
+//    .clk_i(PCI_CLK), 
+//    .rst_i(RST), 
+//    .address_i(spimaster_adr_i), 
+//    .data_o(wbs_spimaster_dat_o), 
+//    .data_i(spimaster_dat_i), 
+//    .we_i(wbs_spimaster_we_i), 
+//    .strobe_i(wbs_spimaster_stb_i), 
+//    .ack_o(wbs_spimaster_ack_o),
+//    .spiSysClk(PCI_CLK), 
+//    .spiClkOut(SD_SPI_CLK), 
+//    .spiDataIn(SD_SPI_MISO), 
+//    .spiDataOut(SD_SPI_MOSI), 
+//    .spiCS_n(SD_SPI_CS_N)    
+//    );
+
+assign SD_SPI_CLK = PCI_CLK;
+assign SD_SPI_MOSI = 1'b1;
+assign SD_SPI_CS_N = 1'b1;
+
+// Instantiate the fpb Controller
+wire [31:0] wbs_fpb_dat_o;
+wire [31:0] wbs_fpb_dat_i;
+wire  [3:0] wbs_fpb_sel_i;
+wire        wbs_fpb_we_i;
+wire        wbs_fpb_stb_i;
+wire        wbs_fpb_cyc_i;
+wire        wbs_fpb_ack_o;
+wire  [4:0] wbs_fpb_adr_i;
+wire  [7:0] fpb_dat_i;
+wire  [7:0] fpb_adr_i;
+wire  [1:0] fpb_adr_low;
+
+wire [31:0] cpu_ctrl2_reg0;
+wire [31:0] cpu_ctrl2_reg1;
+
+wb_cpu_ctrl cpu_ctrl2 (
+    .clk_i(PCI_CLK), 
+    .nrst_i(NRST), 
+    .wb_adr_i(wbs_fpb_adr_i[2:0]), 
+    .wb_dat_o(wbs_fpb_dat_o), 
+    .wb_dat_i(wbs_fpb_dat_i), 
+    .wb_sel_i(wbs_fpb_sel_i), 
+    .wb_we_i(wbs_fpb_we_i), 
+    .wb_stb_i(wbs_fpb_stb_i), 
+    .wb_cyc_i(wbs_fpb_cyc_i), 
+    .wb_ack_o(wbs_fpb_ack_o),
+    .datareg0(cpu_ctrl2_reg0),
+    .datareg1(cpu_ctrl2_reg1)
+    );
+
 
 // Instantiate the Wishbone Backplane
 intercon wb_intercon (
@@ -587,7 +799,7 @@ intercon wb_intercon (
     .wbm_z80_dat_o(wb_z80_dat_o), 
     .wbm_z80_we_o(wb_z80_we_o), 
     .wbm_z80_sel_o(wb_z80_sel_o), 
-    .wbm_z80_adr_o((wb_z80_tga_o & 2'b01) ? {14'h0000,wb_z80_adr_o[7:0],2'b00} : mmu_adr_o),
+    .wbm_z80_adr_o((wb_z80_tga_o & 2'b01) ? {16'h0000,wb_z80_adr_o[7:0]} : mmu_adr_o),
     .wbm_z80_cyc_o(wb_z80_cyc_o), 
     .wbm_z80_stb_o(wb_z80_stb_o),
     .wb_cpu_ctrl_dat_o(wb_cpu_ctrl_dat_o), 
@@ -652,6 +864,33 @@ intercon wb_intercon (
     .wbs_mmu_adr_i(wbs_mmu_adr_i), 
     .wbs_mmu_cyc_i(wbs_mmu_cyc_i), 
     .wbs_mmu_stb_i(wbs_mmu_stb_i), 
+
+    .wbs_vhdfd_dat_o(wbs_vhdfd_dat_o), // 0xC0
+    .wbs_vhdfd_ack_o(wbs_vhdfd_ack_o), 
+    .wbs_vhdfd_dat_i(wbs_vhdfd_dat_i), 
+    .wbs_vhdfd_we_i (wbs_vhdfd_we_i), 
+    .wbs_vhdfd_sel_i(wbs_vhdfd_sel_i), 
+    .wbs_vhdfd_adr_i(wbs_vhdfd_adr_i), 
+    .wbs_vhdfd_cyc_i(wbs_vhdfd_cyc_i), 
+    .wbs_vhdfd_stb_i(wbs_vhdfd_stb_i), 
+
+    .wbs_spimaster_dat_o(wbs_spimaster_dat_o), // 0x80-0xBF
+    .wbs_spimaster_ack_o(wbs_spimaster_ack_o), 
+    .wbs_spimaster_dat_i(wbs_spimaster_dat_i), 
+    .wbs_spimaster_we_i (wbs_spimaster_we_i), 
+    .wbs_spimaster_sel_i(wbs_spimaster_sel_i), 
+    .wbs_spimaster_adr_i(wbs_spimaster_adr_i), 
+    .wbs_spimaster_cyc_i(wbs_spimaster_cyc_i), 
+    .wbs_spimaster_stb_i(wbs_spimaster_stb_i), 
+
+    .wbs_fpb_dat_o(wbs_fpb_dat_o), // 0xE0-0xFF
+    .wbs_fpb_ack_o(wbs_fpb_ack_o), 
+    .wbs_fpb_dat_i(wbs_fpb_dat_i), 
+    .wbs_fpb_we_i (wbs_fpb_we_i), 
+    .wbs_fpb_sel_i(wbs_fpb_sel_i), 
+    .wbs_fpb_adr_i(wbs_fpb_adr_i), 
+    .wbs_fpb_cyc_i(wbs_fpb_cyc_i), 
+    .wbs_fpb_stb_i(wbs_fpb_stb_i), 
 
     .wbs_vga_dat_o(wbs_vga_dat_o), 
     .wbs_vga_ack_o(wbs_vga_ack_o), 
