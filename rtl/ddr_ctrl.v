@@ -3,44 +3,49 @@
 //
 // (c) Joerg Bornschein (<jb@capsec.org>)
 //----------------------------------------------------------------------------
-`include "ddr_include.v"
-
 module ddr_ctrl 
 #(
 	parameter phase_shift  = 0,
+	parameter clk_freq     = 100000000,
 	parameter clk_multiply = 12,
 	parameter clk_divide   = 5,
 	parameter wait200_init = 26
 ) (
 	input                   clk, 
 	input                   reset,
-	// Temporary DCM control input
-	input  [2:0]            rot,     // XXX
 	//  DDR ports
-	output                  ddr_clk,
-	output                  ddr_clk_n,
+	output            [2:0] ddr_clk,
+	output            [2:0] ddr_clk_n,
 	input                   ddr_clk_fb,
 	output                  ddr_ras_n,
 	output                  ddr_cas_n,
 	output                  ddr_we_n,
-	output                  ddr_cke,
-	output                  ddr_cs_n,
-	output [  `A_RNG]       ddr_a,
-	output [ `BA_RNG]       ddr_ba,
-	inout  [ `DQ_RNG]       ddr_dq,
-	inout  [`DQS_RNG]       ddr_dqs,
-	output [ `DM_RNG]       ddr_dm,
+	output            [1:0] ddr_cke,
+	output            [1:0] ddr_cs_n,
+	output       [  `A_RNG] ddr_a,
+	output       [ `BA_RNG] ddr_ba,
+	inout        [ `DQ_RNG] ddr_dq,
+	inout        [`DQS_RNG] ddr_dqs,
+	output       [ `DM_RNG] ddr_dm,
 	// FML (FastMemoryLink)
 	output reg              fml_done,
-	input  [`FML_ADR_RNG]   fml_adr,
+	input    [`FML_ADR_RNG] fml_adr,
 	input                   fml_rd,
 	input                   fml_wr,
-	input  [`FML_DAT_RNG]   fml_wdat,
-	input  [`FML_BE_RNG]    fml_wbe,
+	input    [`FML_DAT_RNG] fml_wdat,
+	input     [`FML_BE_RNG] fml_wbe,
 	input                   fml_wnext,
 	output                  fml_rempty,
 	input                   fml_rnext,
-	output [`FML_DAT_RNG]   fml_rdat
+	output   [`FML_DAT_RNG] fml_rdat,
+	// DCM phase shift control
+	output                  ps_ready,
+	input                   ps_up,
+	input                   ps_down,
+	// Logic Probe
+	output                  probe_clk,
+	input             [7:0] probe_sel,
+	output reg        [7:0] probe
 );
 
 wire [ `DQ_RNG]       ddr_dq_i,  ddr_dq_o;
@@ -65,13 +70,13 @@ ddr_clkgen #(
 	.reset(           reset          ),
 	.locked(          clk_locked     ),
 	// ddr-clk 
+	.read_clk(        read_clk       ),
 	.write_clk(       write_clk      ),
 	.write_clk90(     write_clk90    ),
-	// ddr-read-clk
-	.ddr_clk_fb(      ddr_clk_fb     ),
-	.read_clk(        read_clk       ),
 	// phase shift control
-	.rot(             rot            )      // XXX
+	.ps_ready(        ps_ready      ),
+	.ps_up(           ps_up         ),
+	.ps_down(         ps_down       )
 );
 
 //----------------------------------------------------------------------------
@@ -151,10 +156,12 @@ wire pulse78;
 reg  ar_req;
 reg  ar_done;
 
-ddr_pulse78 pulse79_gen (
-	.clk(     clk        ),
-	.reset(   reset_int  ),
-	.pulse78( pulse78    )
+ddr_pulse78 #(
+	.clk_freq( clk_freq )
+) pulse78_gen (
+	.clk(      clk        ),
+	.reset(    reset_int  ),
+	.pulse78(  pulse78    )
 );
 
 //----------------------------------------------------------------------------
@@ -324,7 +331,7 @@ end
 //----------------------------------------------------------------------------
 // Demux dqs and dq
 //----------------------------------------------------------------------------
-assign ddr_cke   = ~wait200;     // bring up CKE as soon 200us wait is finished
+assign ddr_cke =  {~wait200, ~wait200}; // bring up CKE as soon 200us wait is finished
 
 assign ddr_dqs = ddr_dqs_oe!=1'b0 ? ddr_dqs_o : 'bz;
 assign ddr_dq  = ddr_dqs_oe!=1'b0 ? ddr_dq_o  : 'bz;
@@ -332,8 +339,32 @@ assign ddr_dq  = ddr_dqs_oe!=1'b0 ? ddr_dq_o  : 'bz;
 assign ddr_dqs_i = ddr_dqs;
 assign ddr_dq_i  = ddr_dq;
 
-assign ddr_cs_n = 0;
+assign ddr_cs_n  = 2'b00;
+
+//----------------------------------------------------------------------------
+// Probes
+//----------------------------------------------------------------------------
+assign probe_clk = clk; 
+
+always @(*)
+begin
+	case (probe_sel)
+		8'h00: probe <= { cba_fifo_we, wfifo_we, rfifo_next, 1'b0, cba_fifo_full, wfifo_full, rfifo_empty, 1'b0 };
+		8'h01: probe <= { write_clk, write_clk90, read_clk, 5'b00000 };
+		8'h10: probe <= { rfifo_empty, rfifo_next, rfifo_dout[ 5: 0] };
+		8'h11: probe <= { rfifo_empty, rfifo_next, rfifo_dout[13: 8] };
+		8'h12: probe <= { rfifo_empty, rfifo_next, rfifo_dout[21:16] };
+		8'h13: probe <= { rfifo_empty, rfifo_next, rfifo_dout[29:24] };
+		8'h20: probe <= wfifo_din[ 7:0];
+		8'h21: probe <= wfifo_din[15:8];
+		8'h22: probe <= wfifo_din[23:16];
+		8'h23: probe <= wfifo_din[31:24];
+		8'h30: probe <= cba_fifo_din[17:10];
+		8'h31: probe <= cba_fifo_din[ 9:2];
+	default: probe <= 8'b0;
+	endcase
+end
+
 
 endmodule
 
-// vim: set ts=4

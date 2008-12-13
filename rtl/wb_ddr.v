@@ -8,24 +8,23 @@
 
 module wb_ddr
 #(
-	parameter phase_shift  = 0,
+	parameter clk_freq     = 100000000,
 	parameter clk_multiply = 12,
 	parameter clk_divide   = 5,
+	parameter phase_shift  = 0,
 	parameter wait200_init = 26
 ) (
-	input                   clk, 
-	input                   reset,
-	// XXX -- DCM phase control -- XXX
-	input  [2:0]            rot,    
+	input                    clk, 
+	input                    reset,
 	//  DDR ports
-	output                   ddr_clk,
-	output                   ddr_clk_n,
+	output             [2:0] ddr_clk,
+	output             [2:0] ddr_clk_n,
 	input                    ddr_clk_fb,
 	output                   ddr_ras_n,
 	output                   ddr_cas_n,
 	output                   ddr_we_n,
-	output                   ddr_cke,
-	output                   ddr_cs_n,
+	output             [1:0] ddr_cke,
+	output             [1:0] ddr_cs_n,
 	output        [  `A_RNG] ddr_a,
 	output        [ `BA_RNG] ddr_ba,
 	inout         [ `DQ_RNG] ddr_dq,
@@ -39,7 +38,15 @@ module wb_ddr
 	input                    wb_cyc_i,
 	input                    wb_stb_i,
 	input                    wb_we_i,
-	output reg               wb_ack_o
+	output reg               wb_ack_o,
+	// XXX Temporary DCM control input XXX
+	output                   ps_ready,
+	input                    ps_up,
+	input                    ps_down,
+	// XXX probe wires XXX
+	output                   probe_clk,
+	input              [7:0] probe_sel,
+	output reg         [7:0] probe
 );
 
 //----------------------------------------------------------------------------
@@ -443,7 +450,6 @@ ddr_ctrl #(
 ) ctrl0 (
 	.clk(          clk         ),
 	.reset(        reset       ),
-	.rot(          rot         ),
 	// DDR Ports
 	.ddr_clk(      ddr_clk     ),
 	.ddr_clk_n(    ddr_clk_n   ),
@@ -468,7 +474,11 @@ ddr_ctrl #(
 	.fml_wnext(    fml_wnext2  ),
 	.fml_rempty(   fml_rempty  ),
 	.fml_rdat(     fml_rdat    ),
-	.fml_rnext(    fml_rnext   )
+	.fml_rnext(    fml_rnext   ),
+	// DCM phase shift control
+	.ps_ready(     ps_ready   ),
+	.ps_up(        ps_up      ),
+	.ps_down(      ps_down    )
 );
 
 assign fml_adr = { ls_adr_tag, ls_adr_set };
@@ -607,6 +617,5 @@ begin
 	if (ls_spill)
 		$display ("At time %t WB_DDR spill cacheline: TAG = %h, SET = %h)", $time, ls_adr_tag, ls_adr_set);
 end
-
 
 endmodule

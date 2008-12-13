@@ -1,11 +1,8 @@
 //----------------------------------------------------------------------------
-//
 // Wishbone DDR Controller -- fast write data-path
 // 
 // (c) Joerg Bornschein (<jb@capsec.org>)
-//
 //----------------------------------------------------------------------------
-
 `include "ddr_include.v"
 
 module ddr_wpath (
@@ -25,16 +22,16 @@ module ddr_wpath (
 	// sample to rdata
 	output                 sample,
 	// DDR 
-	output                 ddr_clk,
-	output                 ddr_clk_n,
+	output           [2:0] ddr_clk,
+	output           [2:0] ddr_clk_n,
 	output                 ddr_ras_n,
 	output                 ddr_cas_n,
 	output                 ddr_we_n,
-	output [  `A_RNG]      ddr_a,
-	output [ `BA_RNG]      ddr_ba,
-	output [ `DM_RNG]      ddr_dm,
-	output [ `DQ_RNG]      ddr_dq,
-	output [`DQS_RNG]      ddr_dqs,
+	output      [  `A_RNG] ddr_a,
+	output      [ `BA_RNG] ddr_ba,
+	output      [ `DM_RNG] ddr_dm,
+	output      [ `DQ_RNG] ddr_dq,
+	output      [`DQS_RNG] ddr_dqs,
  	output                 ddr_dqs_oe
 );
 
@@ -52,7 +49,7 @@ wire                   cba_avail = ~cba_empty;
 
 async_fifo #(
 	.DATA_WIDTH( `CBA_WIDTH ),
-	.ADDRESS_WIDTH( 3 )
+	.ADDRESS_WIDTH( 4 )
 ) cba_fifo (
 	.Data_out(   cba_data  ),
 	.Empty_out(  cba_empty ),
@@ -77,7 +74,7 @@ wire                   wdata_avail = ~wdata_empty;
 
 async_fifo #(
 	.DATA_WIDTH( `WFIFO_WIDTH ),
-	.ADDRESS_WIDTH( 3 )
+	.ADDRESS_WIDTH( 4 )
 ) wdata_fifo (
 	.Data_out(   wdata_data  ),
 	.Empty_out(  wdata_empty ),
@@ -136,9 +133,9 @@ end
 //----------------------------------------------------------------------------
 // READ-SHIFT-REGISTER
 //----------------------------------------------------------------------------
-reg [0:7] read_shr;
+reg [7:0] read_shr;
 wire      read_cmd = (cba_cmd == `DDR_CMD_READ) & cba_ack;
-assign    sample   = read_shr[1];
+assign    sample   = read_shr[6];
 
 always @(posedge clk)
 begin
@@ -146,9 +143,9 @@ begin
 		read_shr <= 'b0;
 	else begin
 		if (read_cmd)
- 			read_shr <= { 8'b00011111 };
+ 			read_shr <= { 8'b00011000 };
  		else
- 			read_shr <= { read_shr[1:7], 1'b0 };
+ 			read_shr <= { read_shr[6:0], 1'b0 };
  	end
 end
 
@@ -184,28 +181,31 @@ begin
   ddr_dqs_oe_reg <= write_shr[0];
 end
 
-FDDRRSE ddr_clk_reg (
-	.Q(   ddr_clk      ),
-	.C0(  clk90        ),
-	.C1( ~clk90        ),
-	.CE(  vcc          ),
-	.D0(  vcc          ),
-	.D1(  gnd          ),
-	.R(   gnd          ),
-	.S(   gnd          )
-);
+generate 
+for (i=0; i<3; i=i+1) begin : CLK
+	FDDRRSE ddr_clk_reg (
+		.Q(   ddr_clk[i]   ),
+		.C0(  clk90        ),
+		.C1( ~clk90        ),
+		.CE(  vcc          ),
+		.D0(  vcc          ),
+		.D1(  gnd          ),
+		.R(   gnd          ),
+		.S(   gnd          )
+	);
 
-FDDRRSE ddr_clk_n_reg (
-	.Q(   ddr_clk_n    ),
-	.C0(  clk90        ),
-	.C1( ~clk90        ),
-	.CE(  vcc          ),
-	.D0(  gnd          ),
-	.D1(  vcc          ),
-	.R(   gnd          ),
-	.S(   gnd          )
-);
-
+	FDDRRSE ddr_clk_n_reg (
+		.Q(   ddr_clk_n[i] ),
+		.C0(  clk90        ),
+		.C1( ~clk90        ),
+		.CE(  vcc          ),
+		.D0(  gnd          ),
+		.D1(  vcc          ),
+		.R(   gnd          ),
+		.S(   gnd          )
+	);
+end
+endgenerate
 
 generate 
 for (i=0; i<`DQS_WIDTH; i=i+1) begin : DQS
