@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_sram.v,v 1.3 2008-12-08 06:55:36 hharte Exp $       ////
+////  $Id: wb_sram.v,v 1.4 2008-12-13 21:04:13 hharte Exp $       ////
 ////  wb_sram.v - SRAM with Wishbone Slave interface.             ////
 ////                                                              ////
 ////  This file is part of the Vector Graphic Z80 SBC Project     ////
@@ -39,7 +39,8 @@ module wb_sram
 #(
     parameter mem_file_name = "none",
     parameter adr_width = 14,
-    parameter dat_width = 8
+    parameter dat_width = 8,
+    parameter dw = 32 //number of data-bits
 ) (
     // Generic synchronous single-port RAM interface
     clk_i, nrst_i, wb_adr_i, wb_dat_o, wb_dat_i, wb_sel_i, wb_we_i,
@@ -49,15 +50,13 @@ module wb_sram
     //
     // Default address and data buses width
     //
-    parameter aw = 15; //number of address-bits
-    parameter dw = 32; //number of data-bits
 
     //
     // Generic synchronous single-port RAM interface
     //
     input            clk_i;
     input            nrst_i;
-    input   [aw-1:0] wb_adr_i;
+    input   [adr_width-1:0] wb_adr_i;
     output  [dw-1:0] wb_dat_o;
     input   [dw-1:0] wb_dat_i;
     input      [3:0] wb_sel_i;
