@@ -5,7 +5,7 @@
 -- 80x40 characters. Pixel resolution is 640x480/60Hz
 -- 
 -- Copyright (c) 2007 Javier Valcarce García, javier.valcarce@gmail.com
--- $Id: vga80x40.vhd,v 1.1 2008-12-01 02:00:10 hharte Exp $
+-- $Id: vga80x40.vhd,v 1.2 2008-12-13 20:18:29 hharte Exp $
 --
 ----------------------------------------------------------------------------------------------------
 -- This program is free software: you can redistribute it and/or modify
@@ -51,6 +51,8 @@ generic (
     vsync       : out std_logic
     );   
 end vga80x40;
+
+
 
 architecture rtl of vga80x40 is
 
@@ -148,7 +150,8 @@ begin
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------  
 -- Blank signal, 0 = no draw, 1 = visible/draw zone   
-  blank <= '0' when (hctr > 639) or (vctr > 479) else '1';
+
+  blank <= '0' when (hctr < 8) or (hctr > 647) or (vctr > 479) else '1';
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------  
@@ -240,14 +243,11 @@ begin
     chry_ce <= hctr_639 and blank;
     scry_ce <= chry_011 and hctr_639;
 
+    ram_tmp <= scry * 80 + scrx;
 
-    ram_tmp <= scry * 80 + scrx + 1 when ((scrx_079 = '0')) else
-               scry * 80 when ((chry_011 = '0') and (scrx_079 = '1')) else
-               0         when ((chry_011 = '1') and (scrx_079 = '1'));
-    
     TEXT_A <= std_logic_vector(TO_UNSIGNED(ram_tmp, 12));
 
-    rom_tmp <= TO_INTEGER(unsigned(TEXT_D)) * font_height + (chry/text_height); --//2);
+    rom_tmp <= TO_INTEGER(unsigned(TEXT_D)) * font_height + (chry/text_height);
     FONT_A <= std_logic_vector(TO_UNSIGNED(rom_tmp, 12));
 
   end block;
