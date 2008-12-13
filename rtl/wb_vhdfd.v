@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_vhdfd.v,v 1.3 2008-12-08 06:55:36 hharte Exp $      ////
+////  $Id: wb_vhdfd.v,v 1.4 2008-12-13 21:12:01 hharte Exp $      ////
 ////  wb_vhdfd.v - Vector Graphic HD/FD Disk Controller with      ////
 ////               Wishbone Slave interface.                      ////
 ////                                                              ////
@@ -60,8 +60,8 @@ module wb_vhdfd (clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_
     input             clk_i;
     input             nrst_i;
     input       [2:0] wbs_adr_i;
-    output reg  [8:0] wbs_dat_o;
-  	input 	    [8:0] wbs_dat_i;
+    output reg  [7:0] wbs_dat_o;
+  	input 	    [7:0] wbs_dat_i;
     input 	    [3:0] wbs_sel_i;
   	input 	          wbs_we_i;
     input 	          wbs_stb_i;
@@ -192,7 +192,7 @@ module wb_vhdfd (clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_
     //
     // generate ack_o
     always @(posedge clk_i)
-        wbs_ack_o <= #1 wbs_acc & !wbs_ack_o;
+        wbs_ack_o <= wbs_acc & !wbs_ack_o;
 
 // Instantiate the module
 vhdfd_disk disks (
