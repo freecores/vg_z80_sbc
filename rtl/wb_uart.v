@@ -12,7 +12,7 @@
 //---------------------------------------------------------------------------
 
 module wb_uart #(
-	parameter          clk_freq = 50000000,
+	parameter          clk_freq = 25000000,
 	parameter          baud     = 115200
 ) (
 	input              clk,
@@ -27,10 +27,8 @@ module wb_uart #(
 	input       [31:0] wb_dat_i,
 	output reg  [31:0] wb_dat_o,
 	// Serial Wires
-//	input              uart_rxd,
-//	output             uart_txd,
-	inout					 ps2_clk,
-	inout					 ps2_data,
+	inout              ps2_clk,
+	inout              ps2_data,
 	input              uart1_rxd,
 	output             uart1_txd,
 	input              uart2_rxd,
@@ -54,13 +52,16 @@ wire       tx_busy[0:3];
 wire	rx_extended;
 wire	rx_released;
 wire	rx_shift_key_on;
+wire	rx_ctrl_key_on;
 wire	[7:0] rx_scan_code;
 wire	rx_data_ready;
 wire	tx_write_ack_o;
 wire	tx_error_no_keyboard_ack;
 
 // Instantiate the module
-ps2_keyboard_interface ps2_kbd (
+ps2_keyboard_interface #(
+    .TRAP_SHIFT_KEYS_PP(1)
+) ps2_kbd (
     .clk(clk), 
     .reset(reset), 
     .ps2_clk(ps2_clk), 
@@ -68,6 +69,7 @@ ps2_keyboard_interface ps2_kbd (
     .rx_extended(rx_extended), 
     .rx_released(rx_released), 
     .rx_shift_key_on(rx_shift_key_on), 
+    .rx_ctrl_key_on(rx_ctrl_key_on),     
     .rx_scan_code(rx_scan_code), 
     .rx_ascii(rx_data[0]), 
     .rx_data_ready(rx_avail[0]), 
@@ -138,14 +140,15 @@ uart #(
 //---------------------------------------------------------------------------
 // 
 //---------------------------------------------------------------------------
-wire [7:0] ucr = { wb_adr_i[4:3], 3'b0, rx_error[wb_adr_i[4:3]], rx_avail[wb_adr_i[4:3]], ~tx_busy[wb_adr_i[4:3]] };
+wire    [1:0] sel_port = wb_adr_i[2:1];
+
+wire [7:0] ucr = { 5'b0, rx_error[sel_port], rx_avail[sel_port], ~tx_busy[sel_port] };
 
 wire	key_ready = (~rx_released) & rx_avail[0];
 wire	[7:0] kbdsr = {1'b0, key_ready, 5'b0, ~key_ready};
 
-
 wire wb_rd = wb_stb_i & wb_cyc_i & ~wb_we_i;
-wire wb_wr = wb_stb_i & wb_cyc_i &  wb_we_i; // & wb_sel_i[0];
+wire wb_wr = wb_stb_i & wb_cyc_i &  wb_we_i;
 
 reg  ack;
 
@@ -186,26 +189,30 @@ begin
 				wb_dat_o[7:0] <= kbdsr;
 			end
 			3'b001: begin
-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
-				rx_ack[wb_adr_i[4:3]]        <= 1;
+				if(rx_ctrl_key_on) begin
+                    wb_dat_o[7:0] <= { 2'b00, rx_data[sel_port][5:0] };
+                end else begin
+                    wb_dat_o[7:0] <= rx_data[sel_port];
+                end
+				rx_ack[sel_port]        <= 1;
 			end
 			3'b010: begin
-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
-				rx_ack[wb_adr_i[4:3]]        <= 1;
+				wb_dat_o[7:0] <= rx_data[sel_port];
+				rx_ack[sel_port]        <= 1;
 			end
 			3'b011: begin
 				wb_dat_o[7:0] <= ucr;
 			end
 			3'b100: begin
-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
-				rx_ack[wb_adr_i[4:3]]        <= 1;
+				wb_dat_o[7:0] <= rx_data[sel_port];
+				rx_ack[sel_port]        <= 1;
 			end
 			3'b101: begin
 				wb_dat_o[7:0] <= ucr;
 			end
 			3'b110: begin
-				wb_dat_o[7:0] <= rx_data[wb_adr_i[4:3]];
-				rx_ack[wb_adr_i[4:3]]        <= 1;
+				wb_dat_o[7:0] <= rx_data[sel_port];
+				rx_ack[sel_port]        <= 1;
 			end
 			3'b111: begin
 				wb_dat_o[7:0] <= ucr;
@@ -218,8 +225,8 @@ begin
 		end else if (wb_wr & ~ack ) begin
 			ack <= 1;
 
-			if ((wb_adr_i[2] == 2'b0) && ~tx_busy[wb_adr_i[4:3]]) begin
-				tx_wr[wb_adr_i[4:3]] <= 1;
+			if ((wb_adr_i[0] == 1'b0) && ~tx_busy[sel_port]) begin
+				tx_wr[sel_port] <= 1;
 			end
 		end
 	end
