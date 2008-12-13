@@ -101,6 +101,7 @@
 `define RELEASE_CODE 16'hF0
 `define LEFT_SHIFT   16'h12
 `define RIGHT_SHIFT  16'h59
+`define CTRL_KEY     16'h1D
 
 
 module ps2_keyboard_interface (
@@ -111,6 +112,7 @@ module ps2_keyboard_interface (
   rx_extended,
   rx_released,
   rx_shift_key_on,
+  rx_ctrl_key_on,
   rx_scan_code,
   rx_ascii,
   rx_data_ready,       // rx_read_o
@@ -170,6 +172,7 @@ inout ps2_data;
 output rx_extended;
 output rx_released;
 output rx_shift_key_on;
+output rx_ctrl_key_on;
 output [7:0] rx_scan_code;
 output [7:0] rx_ascii;
 output rx_data_ready;
@@ -221,6 +224,7 @@ reg [7:0] timer_5usec_count;
 reg [7:0] ascii;      // "REG" type only because a case statement is used.
 reg left_shift_key;
 reg right_shift_key;
+reg ctrl_key;
 reg hold_extended;    // Holds prior value, cleared at rx_output_strobe
 reg hold_released;    // Holds prior value, cleared at rx_output_strobe
 reg ps2_clk_s;        // Synchronous version of this input
@@ -526,6 +530,19 @@ begin
 end
 
 assign rx_shift_key_on = left_shift_key || right_shift_key;
+
+// This bit contains the status of the CTRL key
+always @(posedge clk)
+begin
+  if (reset) ctrl_key <= 0;
+  else if ((q[8:1] == `CTRL_KEY) && rx_shifting_done && ~hold_released)
+    ctrl_key <= 1;
+  else if ((q[8:1] == `CTRL_KEY) && rx_shifting_done && hold_released)
+    ctrl_key <= 0;
+end
+
+assign rx_ctrl_key_on = ctrl_key;
+
 
 // Output the special scan code flags, the scan code and the ascii
 always @(posedge clk)
