@@ -8,39 +8,13 @@ NET "CLK" PERIOD = 20 HIGH 50%;   # 50 MHZ
 NET "RST"  LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN ; 
 #NET "BTN_NORTH"  LOC = "V4" | IOSTANDARD = LVTTL | PULLDOWN ; 
 
-# ==== Ignore timing over async-fifos ==== 
-#NET "CLK_IBUFG"               TNM="SYS_CLK"; 
-#NET "*/clkgen/write_clk_u"    TNM="WRITE_CLK"; 
-#NET "*/clkgen/write_clk90_u"  TNM="WRITE_CLK"; 
-#NET "*/ctrl0/write_clk"       TNM="WRITE_CLK"; 
-#NET "*/ctrl0/write_clk90"     TNM="WRITE_CLK"; 
-#NET "*/ctrl0/clkgen/read_clk_u" TNM="READ_CLK"; 
-#NET "*/ctrl0/read_clk"        TNM="READ_CLK"; 
-#NET "*/clkgen/read_clk_u"     TNM="READ_CLK"; 
-#NET "*/clkgen/read_clk180_u"  TNM="DDR_CLK"; 
+# RS-232 UART, J10 - DTE Male DB9
+NET "CONS_UART_TXD"  LOC = "M13" | IOSTANDARD = LVTTL  | SLEW = SLOW  | DRIVE = 8 ;
+NET "CONS_UART_RXD"  LOC = "U8" | IOSTANDARD = LVTTL | PULLUP ;
 
-##----- commented out to remove wb_ddr 
-#TIMESPEC "TS_SYS_DDRREAD"=FROM "SYS_CLK" TO "WRITE_CLK" TIG;
-#TIMESPEC "TS_DDRREAD_SYS"=FROM "WRITE_CLK" TO "SYS_CLK" TIG; 
-# 
-#TIMESPEC "TS_SYS_DDRWRITE"=FROM "SYS_CLK" TO "READ_CLK" TIG; 
-#TIMESPEC "TS_DDRWRITE_SYS"=FROM "READ_CLK" TO "SYS_CLK" TIG; 
-#  
-#TIMESPEC "TS_DDRREAD_DDRWRITE"=FROM "READ_CLK" TO "WRITE_CLK" TIG; 
-#TIMESPEC "TS_DDRWRITE_DDRREAD"=FROM "WRITE_CLK" TO "READ_CLK" TIG; 
- 
-## ==== Place both DCMs at the bottom ==== 
-#INST "*/clkgen/dcm_fx"    LOC="DCM_X0Y1"; 
-#INST "*/clkgen/dcm_phase" LOC="DCM_X1Y1"; 
-##----- end commented out to remove wb_ddr
-
-NET "UART0_BR_CLK"  LOC = "D10" | IOSTANDARD = LVTTL  | SLEW = SLOW  | DRIVE = 12 ;
-
-NET "UART0_TXD"  LOC = "M14" | IOSTANDARD = LVTTL  | SLEW = SLOW  | DRIVE = 8 ;
-NET "UART0_RXD"  LOC = "R7" | IOSTANDARD = LVTTL | PULLUP ;
-
-NET "UART1_TXD"  LOC = "M13" | IOSTANDARD = LVTTL  | SLEW = SLOW  | DRIVE = 8 ;
-NET "UART1_RXD"  LOC = "U8" | IOSTANDARD = LVTTL | PULLUP ;
+# RS-232 UART, J9 - DCE Female DB9
+NET "AUX_UART_TXD"  LOC = "M14" | IOSTANDARD = LVTTL  | SLEW = SLOW  | DRIVE = 8 ;
+NET "AUX_UART_RXD"  LOC = "R7" | IOSTANDARD = LVTTL | PULLUP ;
 
 # Intel StrataFLASH
 NET "FLASH_A<0>"  LOC = "H17" | IOSTANDARD = LVCMOS33  | SLEW = SLOW  | DRIVE = 4;
@@ -96,6 +70,31 @@ NET "PS2_KBD_CLK"  LOC = "G14" | IOSTANDARD = LVCMOS33 | SLEW = SLOW | DRIVE = 8
 NET "PS2_KBD_DAT"  LOC = "G13" | IOSTANDARD = LVCMOS33 | SLEW = SLOW | DRIVE = 8;
 
 ## DDR SDRAM
+# ==== Ignore timing over async-fifos ==== 
+#NET "CLK_IBUFG"               TNM="SYS_CLK"; 
+#NET "*/clkgen/write_clk_u"    TNM="WRITE_CLK"; 
+#NET "*/clkgen/write_clk90_u"  TNM="WRITE_CLK"; 
+#NET "*/ctrl0/write_clk"       TNM="WRITE_CLK"; 
+#NET "*/ctrl0/write_clk90"     TNM="WRITE_CLK"; 
+#NET "*/ctrl0/clkgen/read_clk_u" TNM="READ_CLK"; 
+#NET "*/ctrl0/read_clk"        TNM="READ_CLK"; 
+#NET "*/clkgen/read_clk_u"     TNM="READ_CLK"; 
+#NET "*/clkgen/read_clk180_u"  TNM="DDR_CLK"; 
+
+##----- commented out to remove wb_ddr 
+#TIMESPEC "TS_SYS_DDRREAD"=FROM "SYS_CLK" TO "WRITE_CLK" TIG;
+#TIMESPEC "TS_DDRREAD_SYS"=FROM "WRITE_CLK" TO "SYS_CLK" TIG; 
+# 
+#TIMESPEC "TS_SYS_DDRWRITE"=FROM "SYS_CLK" TO "READ_CLK" TIG; 
+#TIMESPEC "TS_DDRWRITE_SYS"=FROM "READ_CLK" TO "SYS_CLK" TIG; 
+#  
+#TIMESPEC "TS_DDRREAD_DDRWRITE"=FROM "READ_CLK" TO "WRITE_CLK" TIG; 
+#TIMESPEC "TS_DDRWRITE_DDRREAD"=FROM "WRITE_CLK" TO "READ_CLK" TIG; 
+# 
+## ==== Place both DCMs at the bottom ==== 
+#INST "*/clkgen/dcm_fx"    LOC="DCM_X0Y1"; 
+#INST "*/clkgen/dcm_phase" LOC="DCM_X1Y1"; 
+#
 #NET "SD_CK_P"    LOC = "J5" | IOSTANDARD = SSTL2_I ;
 #NET "SD_CK_N"    LOC = "J4" | IOSTANDARD = SSTL2_I ;
 #
@@ -142,7 +141,7 @@ NET "PS2_KBD_DAT"  LOC = "G13" | IOSTANDARD = LVCMOS33 | SLEW = SLOW | DRIVE = 8
 #NET "SD_RAS"     LOC = "C1" | IOSTANDARD = SSTL2_I ;
 #NET "SD_CAS"     LOC = "C2" | IOSTANDARD = SSTL2_I ;
 #NET "SD_WE"      LOC = "D1" | IOSTANDARD = SSTL2_I ;
-
+#
 ## Path to allow connection to top DCM connection
 ##NET "SD_CK_FB"   LOC = "B9" | IOSTANDARD = LVCMOS33 ;
 #
@@ -150,6 +149,7 @@ NET "PS2_KBD_DAT"  LOC = "G13" | IOSTANDARD = LVCMOS33 | SLEW = SLOW | DRIVE = 8
 #NET "rot<0>"  LOC = "K18" | IOSTANDARD = LVTTL | PULLUP   ;
 #NET "rot<1>"  LOC = "G18" | IOSTANDARD = LVTTL | PULLUP   ;
 #NET "rot<2>"  LOC = "V16" | IOSTANDARD = LVTTL | PULLDOWN ;
+##----- end commented out to remove wb_ddr
 
 # SD-SPI Interface
 NET "SD_SPI_CLK"  LOC = "D7" | IOSTANDARD = LVTTL ;
@@ -157,6 +157,31 @@ NET "SD_SPI_MISO" LOC = "C7" | IOSTANDARD = LVTTL | PULLUP   ;
 NET "SD_SPI_MOSI" LOC = "F8" | IOSTANDARD = LVTTL;
 NET "SD_SPI_CS_N" LOC = "E8" | IOSTANDARD = LVTTL;
 
+# Discrete LEDs
+NET "LED<7>" LOC = "F9" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<6>" LOC = "E9" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<5>" LOC = "D11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<4>" LOC = "C11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<3>" LOC = "F11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<2>" LOC = "E11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<1>" LOC = "E12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LED<0>" LOC = "F12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+
+# Switches (Slide Switches)
+NET "SW<0>" LOC = "L13" | IOSTANDARD = LVTTL | PULLUP ;
+NET "SW<1>" LOC = "L14" | IOSTANDARD = LVTTL | PULLUP ;
+NET "SW<2>" LOC = "H18" | IOSTANDARD = LVTTL | PULLUP ;
+NET "SW<3>" LOC = "N17" | IOSTANDARD = LVTTL | PULLUP ;
+
+# LCD Interface
+NET "LCD_E" LOC = "M18" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+NET "LCD_RS" LOC = "L18" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+NET "LCD_RW" LOC = "L17" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+# The LCD four-bit data interface is shared with the StrataFlash.
+NET "LCD_D<0>" LOC = "R15" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+NET "LCD_D<1>" LOC = "R16" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+NET "LCD_D<2>" LOC = "P17" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
+NET "LCD_D<3>" LOC = "M15" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW ;
 
 # Prohibit VREF Pins
 CONFIG PROHIBIT = D2 ;
@@ -164,9 +189,3 @@ CONFIG PROHIBIT = G4 ;
 CONFIG PROHIBIT = J6 ;
 CONFIG PROHIBIT = L5 ;
 CONFIG PROHIBIT = R4 ;
-
-#CONFIG PROHIBIT = W12;	# INITB Pin
-#CONFIG PROHIBIT = B11;	# RS1 JTAG Pins for Plaftorm FLASH
-#CONFIG PROHIBIT = B20;	# RS1 JTAG Pins for Plaftorm FLASH
-#CONFIG PROHIBIT = C11;	# RS1 JTAG Pins for Plaftorm FLASH
-#CONFIG PROHIBIT = E11;	# RS1 JTAG Pins for Plaftorm FLASH
