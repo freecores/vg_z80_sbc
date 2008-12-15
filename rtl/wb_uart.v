@@ -1,13 +1,16 @@
 //---------------------------------------------------------------------------
-// Wishbone UART 
+// Wishbone UARTs / PS/2 ASCII Keyboard Top-Level
 //
 // Register Description:
 //
-//    0x00 UCR      [ 0 | 0 | 0 | tx_busy | 0 | 0 | rx_error | rx_avail ]
-//    0x04 DATA
-//
-//		0x08 COND
-//		0x0c CONS		| 0 0 0 0 0 0 | rx_avail | tx_busy |
+// KB 0x01 STATUS    [ 0 |kry| 0 | 0 | 0 | 0  | 0   |          | ~key_rdy ]
+// KB 0x01 DATA      [                  KEYBOARD DATA                     ]
+// U1 0x02 COND      [                       DATA                         ]
+// U1 0x03 CONS      [ 0 | 0 | 0 | 0 | 0 | rx_error | rx_avail | tx_ready ]
+// U2 0x04 COND      [                       DATA                         ]
+// U2 0x05 CONS      [ 0 | 0 | 0 | 0 | 0 | rx_error | rx_avail | tx_ready ]
+// U3 0x06 COND      [                       DATA                         ]
+// U3 0x07 CONS      [ 0 | 0 | 0 | 0 | 0 | rx_error | rx_avail | tx_ready ]
 //
 //---------------------------------------------------------------------------
 
