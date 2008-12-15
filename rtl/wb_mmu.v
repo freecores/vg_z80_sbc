@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
-////  $Id: wb_mmu.v,v 1.3 2008-12-08 02:07:10 hharte Exp $        ////
+////  $Id: wb_mmu.v,v 1.4 2008-12-15 06:42:44 hharte Exp $        ////
 ////  wb_mmu.v - Simple Memory Mapping Unit with Wishbone         ////
 ////             Slave interface for configuration.               ////
 ////                                                              ////
@@ -73,9 +73,11 @@ module wb_mmu(
     clk_i, nrst_i, wbs_adr_i, wbs_dat_o, wbs_dat_i, wbs_sel_i, wbs_we_i,
     wbs_stb_i, wbs_cyc_i, wbs_ack_o,
     mmu_adr_i,
-    mmu_adr_o
+    mmu_adr_o,
+    rom_sel_i
 );
 
+//`define USE_SERIAL_MONITOR  // Define to use MON4.0C Serial Monitor, 'G E80C' to boot floppy
     // Wishbone Slave Interface
     input          clk_i;
     input          nrst_i;
@@ -91,6 +93,9 @@ module wb_mmu(
     // MMU Address Interface
     output  [23:0] mmu_adr_o;
     input   [23:0] mmu_adr_i;
+    
+    // Reset memory mapping selection
+    input          rom_sel_i;
 
     // Internal storage for mapping and state information
     reg     [11:0] mmu_lut[0:15];
@@ -112,9 +117,9 @@ module wb_mmu(
             mmu_lock <= 1'b1;               // Lock MMU on reset
                 
             // Initial values for MMU mapping table.
-            mmu_lut[0]  <= 12'h101;      // 0x0xxx - Shadow of Monitor, only used to jump to monitor at 0xE000.
+            mmu_lut[0]  <= 12'h100;      // 0x0xxx - Shadow of Monitor, only used to jump to monitor at 0xE000.
                                          // But not the same copy as at E000, because the init patches RST38.        
-            mmu_lut[1]  <= 12'h800;      // 0x1000
+            mmu_lut[1]  <= 12'h201;      // 0x1000
             mmu_lut[2]  <= 12'h801;      // 0x2000
             mmu_lut[3]  <= 12'h802;      // 0x3000
             mmu_lut[4]  <= 12'h803;      // 0x4000
@@ -125,9 +130,16 @@ module wb_mmu(
             mmu_lut[9]  <= 12'h808;      // 0x9000
             mmu_lut[10] <= 12'h809;      // 0xA000
             mmu_lut[11] <= 12'h200;      // 0xB000 - SRAM2-0
-            mmu_lut[12] <= 12'h103;      // 0xC000 - SRAM0-3
-            mmu_lut[13] <= 12'h102;      // 0xD000 - SRAM0-2
-            mmu_lut[14] <= 12'h100;      // 0xE000 - SRAM0-0 (MON4.3)
+            mmu_lut[12] <= 12'h101;      // 0xC000 - SRAM0-3
+`ifdef USE_SERIAL_MONITOR
+            // Use Serial Monitor
+            mmu_lut[13] <= 12'h103;  // 0xD000 - MON 4.3  (Flashwriter2 Monitor)
+            mmu_lut[14] <= 12'h102;  // 0xE000 - MON 4.0c (Serial Monitor)
+`else
+            // Use Flashwriter2 Monitor
+            mmu_lut[13] <= 12'h102;  // 0xD000 - MON 4.0c (Serial Monitor)
+            mmu_lut[14] <= 12'h103;  // 0xE000 - MON 4.3  (Flashwriter2 Monitor)
+`endif // USE_SERIAL_MONITOR
             mmu_lut[15] <= 12'h600;      // 0xF000 - VGA
         end
         else begin
@@ -170,7 +182,7 @@ module wb_mmu(
                 endcase
             end
           
-            wbs_ack_o <= #1 wbs_acc & !wbs_ack_o;
+            wbs_ack_o <= wbs_acc & !wbs_ack_o;
         end
 
     // Make the address mapping based on the MMU input address.
