@@ -2,33 +2,31 @@
 --
 -- For defines see vg_z80_sbc.defines
 --
--- Generated Sun Dec  7 17:41:47 2008
+-- Generated Mon Dec  8 20:57:48 2008
 --
 -- Wishbone masters:
 --   wb32_pci_master
 --   wbm_z80
 --
 -- Wishbone slaves:
---   wb_cpu_ctrl
---     baseadr 0x40 - size 0x20
---   wb_sram
+--   wbs_sram
 --     baseadr 0x100000 - size 0x100000
 --   wbs_flash
 --     baseadr 0x200000 - size 0x100000
 --   wbs_ddr
 --     baseadr 0x800000 - size 0x100000
---   wbs_mmu
---     baseadr 0x60 - size 0x20
 --   wbs_vga
 --     baseadr 0x600000 - size 0x100000
---   wb_uart0
---     baseadr 0x20 - size 0x20
---   wb_uart1
+--   wbs_kbd
 --     baseadr 0x00 - size 0x20
---   wbs_vhdfd
---     baseadr 0xc0 - size 0x20
+--   wbs_mmu
+--     baseadr 0x20 - size 0x20
+--   wb_cpu_ctrl
+--     baseadr 0x40 - size 0x40
 --   wbs_spimaster
 --     baseadr 0x80 - size 0x40
+--   wbs_vhdfd
+--     baseadr 0xc0 - size 0x20
 --   wbs_fpb
 --     baseadr 0xe0 - size 0x20
 -----------------------------------------------------------------------------------------
@@ -152,24 +150,15 @@ entity intercon is
   wbm_z80_cyc_o : in  std_logic;
   wbm_z80_stb_o : in  std_logic;
   -- wishbone slave port(s)
-  -- wb_cpu_ctrl
-  wb_cpu_ctrl_dat_o : in  std_logic_vector(31 downto 0);
-  wb_cpu_ctrl_ack_o : in  std_logic;
-  wb_cpu_ctrl_dat_i : out std_logic_vector(31 downto 0);
-  wb_cpu_ctrl_we_i  : out std_logic;
-  wb_cpu_ctrl_sel_i : out std_logic_vector(3 downto 0);
-  wb_cpu_ctrl_adr_i : out std_logic_vector(2 downto 0);
-  wb_cpu_ctrl_cyc_i : out std_logic;
-  wb_cpu_ctrl_stb_i : out std_logic;
-  -- wb_sram
-  wb_sram_dat_o : in  std_logic_vector(31 downto 0);
-  wb_sram_ack_o : in  std_logic;
-  wb_sram_dat_i : out std_logic_vector(31 downto 0);
-  wb_sram_we_i  : out std_logic;
-  wb_sram_sel_i : out std_logic_vector(3 downto 0);
-  wb_sram_adr_i : out std_logic_vector(14 downto 0);
-  wb_sram_cyc_i : out std_logic;
-  wb_sram_stb_i : out std_logic;
+  -- wbs_sram
+  wbs_sram_dat_o : in  std_logic_vector(31 downto 0);
+  wbs_sram_ack_o : in  std_logic;
+  wbs_sram_dat_i : out std_logic_vector(31 downto 0);
+  wbs_sram_we_i  : out std_logic;
+  wbs_sram_sel_i : out std_logic_vector(3 downto 0);
+  wbs_sram_adr_i : out std_logic_vector(14 downto 0);
+  wbs_sram_cyc_i : out std_logic;
+  wbs_sram_stb_i : out std_logic;
   -- wbs_flash
   wbs_flash_dat_o : in  std_logic_vector(31 downto 0);
   wbs_flash_ack_o : in  std_logic;
@@ -188,15 +177,6 @@ entity intercon is
   wbs_ddr_adr_i : out std_logic_vector(19 downto 0);
   wbs_ddr_cyc_i : out std_logic;
   wbs_ddr_stb_i : out std_logic;
-  -- wbs_mmu
-  wbs_mmu_dat_o : in  std_logic_vector(31 downto 0);
-  wbs_mmu_ack_o : in  std_logic;
-  wbs_mmu_dat_i : out std_logic_vector(31 downto 0);
-  wbs_mmu_we_i  : out std_logic;
-  wbs_mmu_sel_i : out std_logic_vector(3 downto 0);
-  wbs_mmu_adr_i : out std_logic_vector(1 downto 0);
-  wbs_mmu_cyc_i : out std_logic;
-  wbs_mmu_stb_i : out std_logic;
   -- wbs_vga
   wbs_vga_dat_o : in  std_logic_vector(31 downto 0);
   wbs_vga_ack_o : in  std_logic;
@@ -206,33 +186,33 @@ entity intercon is
   wbs_vga_adr_i : out std_logic_vector(13 downto 0);
   wbs_vga_cyc_i : out std_logic;
   wbs_vga_stb_i : out std_logic;
-  -- wb_uart0
-  wb_uart0_dat_o : in  std_logic_vector(31 downto 0);
-  wb_uart0_ack_o : in  std_logic;
-  wb_uart0_dat_i : out std_logic_vector(31 downto 0);
-  wb_uart0_we_i  : out std_logic;
-  wb_uart0_sel_i : out std_logic_vector(3 downto 0);
-  wb_uart0_adr_i : out std_logic_vector(2 downto 0);
-  wb_uart0_cyc_i : out std_logic;
-  wb_uart0_stb_i : out std_logic;
-  -- wb_uart1
-  wb_uart1_dat_o : in  std_logic_vector(31 downto 0);
-  wb_uart1_ack_o : in  std_logic;
-  wb_uart1_dat_i : out std_logic_vector(31 downto 0);
-  wb_uart1_we_i  : out std_logic;
-  wb_uart1_sel_i : out std_logic_vector(3 downto 0);
-  wb_uart1_adr_i : out std_logic_vector(4 downto 0);
-  wb_uart1_cyc_i : out std_logic;
-  wb_uart1_stb_i : out std_logic;
-  -- wbs_vhdfd
-  wbs_vhdfd_dat_o : in  std_logic_vector(31 downto 0);
-  wbs_vhdfd_ack_o : in  std_logic;
-  wbs_vhdfd_dat_i : out std_logic_vector(31 downto 0);
-  wbs_vhdfd_we_i  : out std_logic;
-  wbs_vhdfd_sel_i : out std_logic_vector(3 downto 0);
-  wbs_vhdfd_adr_i : out std_logic_vector(2 downto 0);
-  wbs_vhdfd_cyc_i : out std_logic;
-  wbs_vhdfd_stb_i : out std_logic;
+  -- wbs_kbd
+  wbs_kbd_dat_o : in  std_logic_vector(31 downto 0);
+  wbs_kbd_ack_o : in  std_logic;
+  wbs_kbd_dat_i : out std_logic_vector(31 downto 0);
+  wbs_kbd_we_i  : out std_logic;
+  wbs_kbd_sel_i : out std_logic_vector(3 downto 0);
+  wbs_kbd_adr_i : out std_logic_vector(2 downto 0);
+  wbs_kbd_cyc_i : out std_logic;
+  wbs_kbd_stb_i : out std_logic;
+  -- wbs_mmu
+  wbs_mmu_dat_o : in  std_logic_vector(31 downto 0);
+  wbs_mmu_ack_o : in  std_logic;
+  wbs_mmu_dat_i : out std_logic_vector(31 downto 0);
+  wbs_mmu_we_i  : out std_logic;
+  wbs_mmu_sel_i : out std_logic_vector(3 downto 0);
+  wbs_mmu_adr_i : out std_logic_vector(1 downto 0);
+  wbs_mmu_cyc_i : out std_logic;
+  wbs_mmu_stb_i : out std_logic;
+  -- wb_cpu_ctrl
+  wb_cpu_ctrl_dat_o : in  std_logic_vector(31 downto 0);
+  wb_cpu_ctrl_ack_o : in  std_logic;
+  wb_cpu_ctrl_dat_i : out std_logic_vector(31 downto 0);
+  wb_cpu_ctrl_we_i  : out std_logic;
+  wb_cpu_ctrl_sel_i : out std_logic_vector(3 downto 0);
+  wb_cpu_ctrl_adr_i : out std_logic_vector(2 downto 0);
+  wb_cpu_ctrl_cyc_i : out std_logic;
+  wb_cpu_ctrl_stb_i : out std_logic;
   -- wbs_spimaster
   wbs_spimaster_dat_o : in  std_logic_vector(31 downto 0);
   wbs_spimaster_ack_o : in  std_logic;
@@ -242,6 +222,15 @@ entity intercon is
   wbs_spimaster_adr_i : out std_logic_vector(5 downto 0);
   wbs_spimaster_cyc_i : out std_logic;
   wbs_spimaster_stb_i : out std_logic;
+  -- wbs_vhdfd
+  wbs_vhdfd_dat_o : in  std_logic_vector(31 downto 0);
+  wbs_vhdfd_ack_o : in  std_logic;
+  wbs_vhdfd_dat_i : out std_logic_vector(31 downto 0);
+  wbs_vhdfd_we_i  : out std_logic;
+  wbs_vhdfd_sel_i : out std_logic_vector(3 downto 0);
+  wbs_vhdfd_adr_i : out std_logic_vector(2 downto 0);
+  wbs_vhdfd_cyc_i : out std_logic;
+  wbs_vhdfd_stb_i : out std_logic;
   -- wbs_fpb
   wbs_fpb_dat_o : in  std_logic_vector(31 downto 0);
   wbs_fpb_ack_o : in  std_logic;
@@ -256,66 +245,62 @@ entity intercon is
   reset : in std_logic);
 end intercon;
 architecture rtl of intercon is
-  signal wb32_pci_master_wb_cpu_ctrl_ss : std_logic; -- slave select
-  signal wb32_pci_master_wb_cpu_ctrl_bg : std_logic; -- bus grant
-  signal wb32_pci_master_wb_sram_ss : std_logic; -- slave select
-  signal wb32_pci_master_wb_sram_bg : std_logic; -- bus grant
+  signal wb32_pci_master_wbs_sram_ss : std_logic; -- slave select
+  signal wb32_pci_master_wbs_sram_bg : std_logic; -- bus grant
   signal wb32_pci_master_wbs_flash_ss : std_logic; -- slave select
   signal wb32_pci_master_wbs_flash_bg : std_logic; -- bus grant
   signal wb32_pci_master_wbs_ddr_ss : std_logic; -- slave select
   signal wb32_pci_master_wbs_ddr_bg : std_logic; -- bus grant
-  signal wb32_pci_master_wbs_mmu_ss : std_logic; -- slave select
-  signal wb32_pci_master_wbs_mmu_bg : std_logic; -- bus grant
   signal wb32_pci_master_wbs_vga_ss : std_logic; -- slave select
   signal wb32_pci_master_wbs_vga_bg : std_logic; -- bus grant
-  signal wb32_pci_master_wb_uart0_ss : std_logic; -- slave select
-  signal wb32_pci_master_wb_uart0_bg : std_logic; -- bus grant
-  signal wb32_pci_master_wb_uart1_ss : std_logic; -- slave select
-  signal wb32_pci_master_wb_uart1_bg : std_logic; -- bus grant
-  signal wb32_pci_master_wbs_vhdfd_ss : std_logic; -- slave select
-  signal wb32_pci_master_wbs_vhdfd_bg : std_logic; -- bus grant
+  signal wb32_pci_master_wbs_kbd_ss : std_logic; -- slave select
+  signal wb32_pci_master_wbs_kbd_bg : std_logic; -- bus grant
+  signal wb32_pci_master_wbs_mmu_ss : std_logic; -- slave select
+  signal wb32_pci_master_wbs_mmu_bg : std_logic; -- bus grant
+  signal wb32_pci_master_wb_cpu_ctrl_ss : std_logic; -- slave select
+  signal wb32_pci_master_wb_cpu_ctrl_bg : std_logic; -- bus grant
   signal wb32_pci_master_wbs_spimaster_ss : std_logic; -- slave select
   signal wb32_pci_master_wbs_spimaster_bg : std_logic; -- bus grant
+  signal wb32_pci_master_wbs_vhdfd_ss : std_logic; -- slave select
+  signal wb32_pci_master_wbs_vhdfd_bg : std_logic; -- bus grant
   signal wb32_pci_master_wbs_fpb_ss : std_logic; -- slave select
   signal wb32_pci_master_wbs_fpb_bg : std_logic; -- bus grant
-  signal wbm_z80_wb_cpu_ctrl_ss : std_logic; -- slave select
-  signal wbm_z80_wb_cpu_ctrl_bg : std_logic; -- bus grant
-  signal wbm_z80_wb_sram_ss : std_logic; -- slave select
-  signal wbm_z80_wb_sram_bg : std_logic; -- bus grant
+  signal wbm_z80_wbs_sram_ss : std_logic; -- slave select
+  signal wbm_z80_wbs_sram_bg : std_logic; -- bus grant
   signal wbm_z80_wbs_flash_ss : std_logic; -- slave select
   signal wbm_z80_wbs_flash_bg : std_logic; -- bus grant
   signal wbm_z80_wbs_ddr_ss : std_logic; -- slave select
   signal wbm_z80_wbs_ddr_bg : std_logic; -- bus grant
-  signal wbm_z80_wbs_mmu_ss : std_logic; -- slave select
-  signal wbm_z80_wbs_mmu_bg : std_logic; -- bus grant
   signal wbm_z80_wbs_vga_ss : std_logic; -- slave select
   signal wbm_z80_wbs_vga_bg : std_logic; -- bus grant
-  signal wbm_z80_wb_uart0_ss : std_logic; -- slave select
-  signal wbm_z80_wb_uart0_bg : std_logic; -- bus grant
-  signal wbm_z80_wb_uart1_ss : std_logic; -- slave select
-  signal wbm_z80_wb_uart1_bg : std_logic; -- bus grant
-  signal wbm_z80_wbs_vhdfd_ss : std_logic; -- slave select
-  signal wbm_z80_wbs_vhdfd_bg : std_logic; -- bus grant
+  signal wbm_z80_wbs_kbd_ss : std_logic; -- slave select
+  signal wbm_z80_wbs_kbd_bg : std_logic; -- bus grant
+  signal wbm_z80_wbs_mmu_ss : std_logic; -- slave select
+  signal wbm_z80_wbs_mmu_bg : std_logic; -- bus grant
+  signal wbm_z80_wb_cpu_ctrl_ss : std_logic; -- slave select
+  signal wbm_z80_wb_cpu_ctrl_bg : std_logic; -- bus grant
   signal wbm_z80_wbs_spimaster_ss : std_logic; -- slave select
   signal wbm_z80_wbs_spimaster_bg : std_logic; -- bus grant
+  signal wbm_z80_wbs_vhdfd_ss : std_logic; -- slave select
+  signal wbm_z80_wbs_vhdfd_bg : std_logic; -- bus grant
   signal wbm_z80_wbs_fpb_ss : std_logic; -- slave select
   signal wbm_z80_wbs_fpb_bg : std_logic; -- bus grant
 begin  -- rtl
-arbiter_wb_cpu_ctrl : block
+arbiter_wbs_sram : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
   signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
   signal wbm_z80_trafic_limit : std_logic;
   signal ce, idle, ack : std_logic;
 begin
-ack <= wb_cpu_ctrl_ack_o;
+ack <= wbs_sram_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
   priority => 1,
   tot_priority => 2)
 port map(
-  bg => wb32_pci_master_wb_cpu_ctrl_bg,
+  bg => wb32_pci_master_wbs_sram_bg,
   ce => ce,
   trafic_limit => wb32_pci_master_trafic_limit,
   clk => clk,
@@ -326,7 +311,7 @@ generic map(
   priority => 1,
   tot_priority => 2)
 port map(
-  bg => wbm_z80_wb_cpu_ctrl_bg,
+  bg => wbm_z80_wbs_sram_bg,
   ce => ce,
   trafic_limit => wbm_z80_trafic_limit,
   clk => clk,
@@ -359,84 +344,16 @@ end if;
 end process;
 
 idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_cpu_ctrl_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_cpu_ctrl_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_cpu_ctrl_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_cpu_ctrl_ss='1' else '0';
+wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_sram_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
+wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_sram_ss='1' and wbm_z80_trafic_limit='0' else '0';
+wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_sram_ss='1' else '0';
+wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_sram_ss='1' else '0';
 wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
 wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_cpu_ctrl_ss) or (wbm_z80_cyc_o and wbm_z80_wb_cpu_ctrl_ss) when idle='1' else '0';
-wb32_pci_master_wb_cpu_ctrl_bg <= wb32_pci_master_bg;
-wbm_z80_wb_cpu_ctrl_bg <= wbm_z80_bg;
-end block arbiter_wb_cpu_ctrl;
-arbiter_wb_sram : block
-  signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
-  signal wb32_pci_master_trafic_limit : std_logic;
-  signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
-  signal wbm_z80_trafic_limit : std_logic;
-  signal ce, idle, ack : std_logic;
-begin
-ack <= wb_sram_ack_o;
-
-trafic_supervision_1 : entity work.trafic_supervision
-generic map(
-  priority => 2,
-  tot_priority => 4)
-port map(
-  bg => wb32_pci_master_wb_sram_bg,
-  ce => ce,
-  trafic_limit => wb32_pci_master_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-trafic_supervision_2 : entity work.trafic_supervision
-generic map(
-  priority => 2,
-  tot_priority => 4)
-port map(
-  bg => wbm_z80_wb_sram_bg,
-  ce => ce,
-  trafic_limit => wbm_z80_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-process(clk,reset)
-begin
-if reset='1' then
-  wb32_pci_master_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wb32_pci_master_bg_q='0' then
-  wb32_pci_master_bg_q <= wb32_pci_master_bg;
-elsif ack='1' then
-  wb32_pci_master_bg_q <= '0';
-end if;
-end if;
-end process;
-
-process(clk,reset)
-begin
-if reset='1' then
-  wbm_z80_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wbm_z80_bg_q='0' then
-  wbm_z80_bg_q <= wbm_z80_bg;
-elsif ack='1' then
-  wbm_z80_bg_q <= '0';
-end if;
-end if;
-end process;
-
-idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_sram_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_sram_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_sram_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_sram_ss='1' else '0';
-wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
-wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_sram_ss) or (wbm_z80_cyc_o and wbm_z80_wb_sram_ss) when idle='1' else '0';
-wb32_pci_master_wb_sram_bg <= wb32_pci_master_bg;
-wbm_z80_wb_sram_bg <= wbm_z80_bg;
-end block arbiter_wb_sram;
+ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_sram_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_sram_ss) when idle='1' else '0';
+wb32_pci_master_wbs_sram_bg <= wb32_pci_master_bg;
+wbm_z80_wbs_sram_bg <= wbm_z80_bg;
+end block arbiter_wbs_sram;
 arbiter_wbs_flash : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
@@ -448,8 +365,8 @@ ack <= wbs_flash_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 3,
-  tot_priority => 6)
+  priority => 2,
+  tot_priority => 4)
 port map(
   bg => wb32_pci_master_wbs_flash_bg,
   ce => ce,
@@ -459,8 +376,8 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 3,
-  tot_priority => 6)
+  priority => 2,
+  tot_priority => 4)
 port map(
   bg => wbm_z80_wbs_flash_bg,
   ce => ce,
@@ -516,8 +433,8 @@ ack <= wbs_ddr_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 4,
-  tot_priority => 8)
+  priority => 3,
+  tot_priority => 6)
 port map(
   bg => wb32_pci_master_wbs_ddr_bg,
   ce => ce,
@@ -527,8 +444,8 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 4,
-  tot_priority => 8)
+  priority => 3,
+  tot_priority => 6)
 port map(
   bg => wbm_z80_wbs_ddr_bg,
   ce => ce,
@@ -573,74 +490,6 @@ ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_ddr_ss) or (wbm_z80_cyc_o a
 wb32_pci_master_wbs_ddr_bg <= wb32_pci_master_bg;
 wbm_z80_wbs_ddr_bg <= wbm_z80_bg;
 end block arbiter_wbs_ddr;
-arbiter_wbs_mmu : block
-  signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
-  signal wb32_pci_master_trafic_limit : std_logic;
-  signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
-  signal wbm_z80_trafic_limit : std_logic;
-  signal ce, idle, ack : std_logic;
-begin
-ack <= wbs_mmu_ack_o;
-
-trafic_supervision_1 : entity work.trafic_supervision
-generic map(
-  priority => 5,
-  tot_priority => 10)
-port map(
-  bg => wb32_pci_master_wbs_mmu_bg,
-  ce => ce,
-  trafic_limit => wb32_pci_master_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-trafic_supervision_2 : entity work.trafic_supervision
-generic map(
-  priority => 5,
-  tot_priority => 10)
-port map(
-  bg => wbm_z80_wbs_mmu_bg,
-  ce => ce,
-  trafic_limit => wbm_z80_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-process(clk,reset)
-begin
-if reset='1' then
-  wb32_pci_master_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wb32_pci_master_bg_q='0' then
-  wb32_pci_master_bg_q <= wb32_pci_master_bg;
-elsif ack='1' then
-  wb32_pci_master_bg_q <= '0';
-end if;
-end if;
-end process;
-
-process(clk,reset)
-begin
-if reset='1' then
-  wbm_z80_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wbm_z80_bg_q='0' then
-  wbm_z80_bg_q <= wbm_z80_bg;
-elsif ack='1' then
-  wbm_z80_bg_q <= '0';
-end if;
-end if;
-end process;
-
-idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_mmu_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_mmu_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_mmu_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_mmu_ss='1' else '0';
-wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
-wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_mmu_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_mmu_ss) when idle='1' else '0';
-wb32_pci_master_wbs_mmu_bg <= wb32_pci_master_bg;
-wbm_z80_wbs_mmu_bg <= wbm_z80_bg;
-end block arbiter_wbs_mmu;
 arbiter_wbs_vga : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
@@ -652,8 +501,8 @@ ack <= wbs_vga_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 6,
-  tot_priority => 12)
+  priority => 4,
+  tot_priority => 8)
 port map(
   bg => wb32_pci_master_wbs_vga_bg,
   ce => ce,
@@ -663,8 +512,8 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 6,
-  tot_priority => 12)
+  priority => 4,
+  tot_priority => 8)
 port map(
   bg => wbm_z80_wbs_vga_bg,
   ce => ce,
@@ -709,21 +558,21 @@ ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_vga_ss) or (wbm_z80_cyc_o a
 wb32_pci_master_wbs_vga_bg <= wb32_pci_master_bg;
 wbm_z80_wbs_vga_bg <= wbm_z80_bg;
 end block arbiter_wbs_vga;
-arbiter_wb_uart0 : block
+arbiter_wbs_kbd : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
   signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
   signal wbm_z80_trafic_limit : std_logic;
   signal ce, idle, ack : std_logic;
 begin
-ack <= wb_uart0_ack_o;
+ack <= wbs_kbd_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 7,
-  tot_priority => 14)
+  priority => 5,
+  tot_priority => 10)
 port map(
-  bg => wb32_pci_master_wb_uart0_bg,
+  bg => wb32_pci_master_wbs_kbd_bg,
   ce => ce,
   trafic_limit => wb32_pci_master_trafic_limit,
   clk => clk,
@@ -731,10 +580,10 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 7,
-  tot_priority => 14)
+  priority => 5,
+  tot_priority => 10)
 port map(
-  bg => wbm_z80_wb_uart0_bg,
+  bg => wbm_z80_wbs_kbd_bg,
   ce => ce,
   trafic_limit => wbm_z80_trafic_limit,
   clk => clk,
@@ -767,31 +616,31 @@ end if;
 end process;
 
 idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_uart0_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_uart0_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_uart0_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_uart0_ss='1' else '0';
+wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_kbd_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
+wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_kbd_ss='1' and wbm_z80_trafic_limit='0' else '0';
+wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_kbd_ss='1' else '0';
+wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_kbd_ss='1' else '0';
 wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
 wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_uart0_ss) or (wbm_z80_cyc_o and wbm_z80_wb_uart0_ss) when idle='1' else '0';
-wb32_pci_master_wb_uart0_bg <= wb32_pci_master_bg;
-wbm_z80_wb_uart0_bg <= wbm_z80_bg;
-end block arbiter_wb_uart0;
-arbiter_wb_uart1 : block
+ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_kbd_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_kbd_ss) when idle='1' else '0';
+wb32_pci_master_wbs_kbd_bg <= wb32_pci_master_bg;
+wbm_z80_wbs_kbd_bg <= wbm_z80_bg;
+end block arbiter_wbs_kbd;
+arbiter_wbs_mmu : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
   signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
   signal wbm_z80_trafic_limit : std_logic;
   signal ce, idle, ack : std_logic;
 begin
-ack <= wb_uart1_ack_o;
+ack <= wbs_mmu_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 8,
-  tot_priority => 16)
+  priority => 6,
+  tot_priority => 12)
 port map(
-  bg => wb32_pci_master_wb_uart1_bg,
+  bg => wb32_pci_master_wbs_mmu_bg,
   ce => ce,
   trafic_limit => wb32_pci_master_trafic_limit,
   clk => clk,
@@ -799,10 +648,10 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 8,
-  tot_priority => 16)
+  priority => 6,
+  tot_priority => 12)
 port map(
-  bg => wbm_z80_wb_uart1_bg,
+  bg => wbm_z80_wbs_mmu_bg,
   ce => ce,
   trafic_limit => wbm_z80_trafic_limit,
   clk => clk,
@@ -835,16 +684,152 @@ end if;
 end process;
 
 idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_uart1_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_uart1_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_uart1_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_uart1_ss='1' else '0';
+wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_mmu_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
+wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_mmu_ss='1' and wbm_z80_trafic_limit='0' else '0';
+wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_mmu_ss='1' else '0';
+wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_mmu_ss='1' else '0';
 wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
 wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_uart1_ss) or (wbm_z80_cyc_o and wbm_z80_wb_uart1_ss) when idle='1' else '0';
-wb32_pci_master_wb_uart1_bg <= wb32_pci_master_bg;
-wbm_z80_wb_uart1_bg <= wbm_z80_bg;
-end block arbiter_wb_uart1;
+ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_mmu_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_mmu_ss) when idle='1' else '0';
+wb32_pci_master_wbs_mmu_bg <= wb32_pci_master_bg;
+wbm_z80_wbs_mmu_bg <= wbm_z80_bg;
+end block arbiter_wbs_mmu;
+arbiter_wb_cpu_ctrl : block
+  signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
+  signal wb32_pci_master_trafic_limit : std_logic;
+  signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
+  signal wbm_z80_trafic_limit : std_logic;
+  signal ce, idle, ack : std_logic;
+begin
+ack <= wb_cpu_ctrl_ack_o;
+
+trafic_supervision_1 : entity work.trafic_supervision
+generic map(
+  priority => 7,
+  tot_priority => 14)
+port map(
+  bg => wb32_pci_master_wb_cpu_ctrl_bg,
+  ce => ce,
+  trafic_limit => wb32_pci_master_trafic_limit,
+  clk => clk,
+  reset => reset);
+
+trafic_supervision_2 : entity work.trafic_supervision
+generic map(
+  priority => 7,
+  tot_priority => 14)
+port map(
+  bg => wbm_z80_wb_cpu_ctrl_bg,
+  ce => ce,
+  trafic_limit => wbm_z80_trafic_limit,
+  clk => clk,
+  reset => reset);
+
+process(clk,reset)
+begin
+if reset='1' then
+  wb32_pci_master_bg_q <= '0';
+elsif clk'event and clk='1' then
+if wb32_pci_master_bg_q='0' then
+  wb32_pci_master_bg_q <= wb32_pci_master_bg;
+elsif ack='1' then
+  wb32_pci_master_bg_q <= '0';
+end if;
+end if;
+end process;
+
+process(clk,reset)
+begin
+if reset='1' then
+  wbm_z80_bg_q <= '0';
+elsif clk'event and clk='1' then
+if wbm_z80_bg_q='0' then
+  wbm_z80_bg_q <= wbm_z80_bg;
+elsif ack='1' then
+  wbm_z80_bg_q <= '0';
+end if;
+end if;
+end process;
+
+idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
+wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_cpu_ctrl_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
+wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_cpu_ctrl_ss='1' and wbm_z80_trafic_limit='0' else '0';
+wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wb_cpu_ctrl_ss='1' else '0';
+wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wb_cpu_ctrl_ss='1' else '0';
+wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
+wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
+ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_cpu_ctrl_ss) or (wbm_z80_cyc_o and wbm_z80_wb_cpu_ctrl_ss) when idle='1' else '0';
+wb32_pci_master_wb_cpu_ctrl_bg <= wb32_pci_master_bg;
+wbm_z80_wb_cpu_ctrl_bg <= wbm_z80_bg;
+end block arbiter_wb_cpu_ctrl;
+arbiter_wbs_spimaster : block
+  signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
+  signal wb32_pci_master_trafic_limit : std_logic;
+  signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
+  signal wbm_z80_trafic_limit : std_logic;
+  signal ce, idle, ack : std_logic;
+begin
+ack <= wbs_spimaster_ack_o;
+
+trafic_supervision_1 : entity work.trafic_supervision
+generic map(
+  priority => 8,
+  tot_priority => 16)
+port map(
+  bg => wb32_pci_master_wbs_spimaster_bg,
+  ce => ce,
+  trafic_limit => wb32_pci_master_trafic_limit,
+  clk => clk,
+  reset => reset);
+
+trafic_supervision_2 : entity work.trafic_supervision
+generic map(
+  priority => 8,
+  tot_priority => 16)
+port map(
+  bg => wbm_z80_wbs_spimaster_bg,
+  ce => ce,
+  trafic_limit => wbm_z80_trafic_limit,
+  clk => clk,
+  reset => reset);
+
+process(clk,reset)
+begin
+if reset='1' then
+  wb32_pci_master_bg_q <= '0';
+elsif clk'event and clk='1' then
+if wb32_pci_master_bg_q='0' then
+  wb32_pci_master_bg_q <= wb32_pci_master_bg;
+elsif ack='1' then
+  wb32_pci_master_bg_q <= '0';
+end if;
+end if;
+end process;
+
+process(clk,reset)
+begin
+if reset='1' then
+  wbm_z80_bg_q <= '0';
+elsif clk'event and clk='1' then
+if wbm_z80_bg_q='0' then
+  wbm_z80_bg_q <= wbm_z80_bg;
+elsif ack='1' then
+  wbm_z80_bg_q <= '0';
+end if;
+end if;
+end process;
+
+idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
+wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_spimaster_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
+wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_spimaster_ss='1' and wbm_z80_trafic_limit='0' else '0';
+wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_spimaster_ss='1' else '0';
+wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_spimaster_ss='1' else '0';
+wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
+wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
+ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_spimaster_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_spimaster_ss) when idle='1' else '0';
+wb32_pci_master_wbs_spimaster_bg <= wb32_pci_master_bg;
+wbm_z80_wbs_spimaster_bg <= wbm_z80_bg;
+end block arbiter_wbs_spimaster;
 arbiter_wbs_vhdfd : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
@@ -913,74 +898,6 @@ ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_vhdfd_ss) or (wbm_z80_cyc_o
 wb32_pci_master_wbs_vhdfd_bg <= wb32_pci_master_bg;
 wbm_z80_wbs_vhdfd_bg <= wbm_z80_bg;
 end block arbiter_wbs_vhdfd;
-arbiter_wbs_spimaster : block
-  signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
-  signal wb32_pci_master_trafic_limit : std_logic;
-  signal wbm_z80_bg, wbm_z80_bg_1, wbm_z80_bg_2, wbm_z80_bg_q : std_logic;
-  signal wbm_z80_trafic_limit : std_logic;
-  signal ce, idle, ack : std_logic;
-begin
-ack <= wbs_spimaster_ack_o;
-
-trafic_supervision_1 : entity work.trafic_supervision
-generic map(
-  priority => 10,
-  tot_priority => 20)
-port map(
-  bg => wb32_pci_master_wbs_spimaster_bg,
-  ce => ce,
-  trafic_limit => wb32_pci_master_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-trafic_supervision_2 : entity work.trafic_supervision
-generic map(
-  priority => 10,
-  tot_priority => 20)
-port map(
-  bg => wbm_z80_wbs_spimaster_bg,
-  ce => ce,
-  trafic_limit => wbm_z80_trafic_limit,
-  clk => clk,
-  reset => reset);
-
-process(clk,reset)
-begin
-if reset='1' then
-  wb32_pci_master_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wb32_pci_master_bg_q='0' then
-  wb32_pci_master_bg_q <= wb32_pci_master_bg;
-elsif ack='1' then
-  wb32_pci_master_bg_q <= '0';
-end if;
-end if;
-end process;
-
-process(clk,reset)
-begin
-if reset='1' then
-  wbm_z80_bg_q <= '0';
-elsif clk'event and clk='1' then
-if wbm_z80_bg_q='0' then
-  wbm_z80_bg_q <= wbm_z80_bg;
-elsif ack='1' then
-  wbm_z80_bg_q <= '0';
-end if;
-end if;
-end process;
-
-idle <= '1' when wb32_pci_master_bg_q='0' and wbm_z80_bg_q='0' else '0';
-wb32_pci_master_bg_1 <= '1' when idle='1' and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_spimaster_ss='1' and wb32_pci_master_trafic_limit='0' else '0';
-wbm_z80_bg_1 <= '1' when idle='1' and (wb32_pci_master_bg_1='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_spimaster_ss='1' and wbm_z80_trafic_limit='0' else '0';
-wb32_pci_master_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0') and wb32_pci_master_cyc_o='1' and wb32_pci_master_wbs_spimaster_ss='1' else '0';
-wbm_z80_bg_2 <= '1' when idle='1' and (wb32_pci_master_bg_1='0' and wbm_z80_bg_1='0' and wb32_pci_master_bg_2='0') and wbm_z80_cyc_o='1' and wbm_z80_wbs_spimaster_ss='1' else '0';
-wb32_pci_master_bg <= wb32_pci_master_bg_q or wb32_pci_master_bg_1 or wb32_pci_master_bg_2;
-wbm_z80_bg <= wbm_z80_bg_q or wbm_z80_bg_1 or wbm_z80_bg_2;
-ce <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_spimaster_ss) or (wbm_z80_cyc_o and wbm_z80_wbs_spimaster_ss) when idle='1' else '0';
-wb32_pci_master_wbs_spimaster_bg <= wb32_pci_master_bg;
-wbm_z80_wbs_spimaster_bg <= wbm_z80_bg;
-end block arbiter_wbs_spimaster;
 arbiter_wbs_fpb : block
   signal wb32_pci_master_bg, wb32_pci_master_bg_1, wb32_pci_master_bg_2, wb32_pci_master_bg_q : std_logic;
   signal wb32_pci_master_trafic_limit : std_logic;
@@ -992,8 +909,8 @@ ack <= wbs_fpb_ack_o;
 
 trafic_supervision_1 : entity work.trafic_supervision
 generic map(
-  priority => 11,
-  tot_priority => 22)
+  priority => 10,
+  tot_priority => 20)
 port map(
   bg => wb32_pci_master_wbs_fpb_bg,
   ce => ce,
@@ -1003,8 +920,8 @@ port map(
 
 trafic_supervision_2 : entity work.trafic_supervision
 generic map(
-  priority => 11,
-  tot_priority => 22)
+  priority => 10,
+  tot_priority => 20)
 port map(
   bg => wbm_z80_wbs_fpb_bg,
   ce => ce,
@@ -1051,132 +968,122 @@ wbm_z80_wbs_fpb_bg <= wbm_z80_bg;
 end block arbiter_wbs_fpb;
 decoder:block
 begin
-wb32_pci_master_wb_cpu_ctrl_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000010" else 
-'0';
-wb32_pci_master_wb_sram_ss <= '1' when wb32_pci_master_adr_o(23 downto 20)="0001" else 
+wb32_pci_master_wbs_sram_ss <= '1' when wb32_pci_master_adr_o(23 downto 20)="0001" else 
 '0';
 wb32_pci_master_wbs_flash_ss <= '1' when wb32_pci_master_adr_o(23 downto 20)="0010" else 
 '0';
 wb32_pci_master_wbs_ddr_ss <= '1' when wb32_pci_master_adr_o(23 downto 20)="1000" else 
 '0';
-wb32_pci_master_wbs_mmu_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000011" else 
-'0';
 wb32_pci_master_wbs_vga_ss <= '1' when wb32_pci_master_adr_o(23 downto 20)="0110" else 
 '0';
-wb32_pci_master_wb_uart0_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000001" else 
+wb32_pci_master_wbs_kbd_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000000" else 
 '0';
-wb32_pci_master_wb_uart1_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000000" else 
+wb32_pci_master_wbs_mmu_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000001" else 
 '0';
-wb32_pci_master_wbs_vhdfd_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000110" else 
+wb32_pci_master_wb_cpu_ctrl_ss <= '1' when wb32_pci_master_adr_o(23 downto 6)="000000000000000001" else 
 '0';
 wb32_pci_master_wbs_spimaster_ss <= '1' when wb32_pci_master_adr_o(23 downto 6)="000000000000000010" else 
 '0';
+wb32_pci_master_wbs_vhdfd_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000110" else 
+'0';
 wb32_pci_master_wbs_fpb_ss <= '1' when wb32_pci_master_adr_o(23 downto 5)="0000000000000000111" else 
 '0';
-wbm_z80_wb_cpu_ctrl_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000010" else 
-'0';
-wbm_z80_wb_sram_ss <= '1' when wbm_z80_adr_o(23 downto 20)="0001" else 
+wbm_z80_wbs_sram_ss <= '1' when wbm_z80_adr_o(23 downto 20)="0001" else 
 '0';
 wbm_z80_wbs_flash_ss <= '1' when wbm_z80_adr_o(23 downto 20)="0010" else 
 '0';
 wbm_z80_wbs_ddr_ss <= '1' when wbm_z80_adr_o(23 downto 20)="1000" else 
 '0';
-wbm_z80_wbs_mmu_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000011" else 
-'0';
 wbm_z80_wbs_vga_ss <= '1' when wbm_z80_adr_o(23 downto 20)="0110" else 
 '0';
-wbm_z80_wb_uart0_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000001" else 
+wbm_z80_wbs_kbd_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000000" else 
 '0';
-wbm_z80_wb_uart1_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000000" else 
+wbm_z80_wbs_mmu_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000001" else 
 '0';
-wbm_z80_wbs_vhdfd_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000110" else 
+wbm_z80_wb_cpu_ctrl_ss <= '1' when wbm_z80_adr_o(23 downto 6)="000000000000000001" else 
 '0';
 wbm_z80_wbs_spimaster_ss <= '1' when wbm_z80_adr_o(23 downto 6)="000000000000000010" else 
 '0';
+wbm_z80_wbs_vhdfd_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000110" else 
+'0';
 wbm_z80_wbs_fpb_ss <= '1' when wbm_z80_adr_o(23 downto 5)="0000000000000000111" else 
 '0';
-wb_cpu_ctrl_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_adr_i <= (wb32_pci_master_adr_o(14 downto 0) and wb32_pci_master_wb_sram_bg) or (wbm_z80_adr_o(14 downto 0) and wbm_z80_wb_sram_bg);
+wbs_sram_adr_i <= (wb32_pci_master_adr_o(14 downto 0) and wb32_pci_master_wbs_sram_bg) or (wbm_z80_adr_o(14 downto 0) and wbm_z80_wbs_sram_bg);
 wbs_flash_adr_i <= (wb32_pci_master_adr_o(18 downto 0) and wb32_pci_master_wbs_flash_bg) or (wbm_z80_adr_o(18 downto 0) and wbm_z80_wbs_flash_bg);
 wbs_ddr_adr_i <= (wb32_pci_master_adr_o(19 downto 0) and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_adr_o(19 downto 0) and wbm_z80_wbs_ddr_bg);
-wbs_mmu_adr_i <= (wb32_pci_master_adr_o(1 downto 0) and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_adr_o(1 downto 0) and wbm_z80_wbs_mmu_bg);
 wbs_vga_adr_i <= (wb32_pci_master_adr_o(13 downto 0) and wb32_pci_master_wbs_vga_bg) or (wbm_z80_adr_o(13 downto 0) and wbm_z80_wbs_vga_bg);
-wb_uart0_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wb_uart0_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wb_uart0_bg);
-wb_uart1_adr_i <= (wb32_pci_master_adr_o(4 downto 0) and wb32_pci_master_wb_uart1_bg) or (wbm_z80_adr_o(4 downto 0) and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wbs_kbd_bg);
+wbs_mmu_adr_i <= (wb32_pci_master_adr_o(1 downto 0) and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_adr_o(1 downto 0) and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_adr_i <= (wb32_pci_master_adr_o(5 downto 0) and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_adr_o(5 downto 0) and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_adr_i <= (wb32_pci_master_adr_o(2 downto 0) and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_adr_o(2 downto 0) and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_adr_i <= (wb32_pci_master_adr_o(4 downto 0) and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_adr_o(4 downto 0) and wbm_z80_wbs_fpb_bg);
 end block decoder;
 
 -- cyc_i(s)
-wb_cpu_ctrl_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_cyc_o and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_sram_bg) or (wbm_z80_cyc_o and wbm_z80_wb_sram_bg);
+wbs_sram_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_sram_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_sram_bg);
 wbs_flash_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_flash_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_flash_bg);
 wbs_ddr_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_ddr_bg);
-wbs_mmu_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_mmu_bg);
 wbs_vga_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_vga_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_vga_bg);
-wb_uart0_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_uart0_bg) or (wbm_z80_cyc_o and wbm_z80_wb_uart0_bg);
-wb_uart1_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_uart1_bg) or (wbm_z80_cyc_o and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_kbd_bg);
+wbs_mmu_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_cyc_o and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_cyc_i <= (wb32_pci_master_cyc_o and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_cyc_o and wbm_z80_wbs_fpb_bg);
 -- stb_i(s)
-wb_cpu_ctrl_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_stb_o and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wb_sram_bg) or (wbm_z80_stb_o and wbm_z80_wb_sram_bg);
+wbs_sram_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_sram_bg) or (wbm_z80_stb_o and wbm_z80_wbs_sram_bg);
 wbs_flash_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_flash_bg) or (wbm_z80_stb_o and wbm_z80_wbs_flash_bg);
 wbs_ddr_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_stb_o and wbm_z80_wbs_ddr_bg);
-wbs_mmu_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_stb_o and wbm_z80_wbs_mmu_bg);
 wbs_vga_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_vga_bg) or (wbm_z80_stb_o and wbm_z80_wbs_vga_bg);
-wb_uart0_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wb_uart0_bg) or (wbm_z80_stb_o and wbm_z80_wb_uart0_bg);
-wb_uart1_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wb_uart1_bg) or (wbm_z80_stb_o and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_stb_o and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_stb_o and wbm_z80_wbs_kbd_bg);
+wbs_mmu_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_stb_o and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_stb_o and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_stb_o and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_stb_o and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_stb_i <= (wb32_pci_master_stb_o and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_stb_o and wbm_z80_wbs_fpb_bg);
 -- we_i(s)
-wb_cpu_ctrl_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_we_o and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wb_sram_bg) or (wbm_z80_we_o and wbm_z80_wb_sram_bg);
+wbs_sram_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_sram_bg) or (wbm_z80_we_o and wbm_z80_wbs_sram_bg);
 wbs_flash_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_flash_bg) or (wbm_z80_we_o and wbm_z80_wbs_flash_bg);
 wbs_ddr_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_we_o and wbm_z80_wbs_ddr_bg);
-wbs_mmu_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_we_o and wbm_z80_wbs_mmu_bg);
 wbs_vga_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_vga_bg) or (wbm_z80_we_o and wbm_z80_wbs_vga_bg);
-wb_uart0_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wb_uart0_bg) or (wbm_z80_we_o and wbm_z80_wb_uart0_bg);
-wb_uart1_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wb_uart1_bg) or (wbm_z80_we_o and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_we_o and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_we_o and wbm_z80_wbs_kbd_bg);
+wbs_mmu_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_we_o and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_we_o and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_we_o and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_we_o and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_we_i <= (wb32_pci_master_we_o and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_we_o and wbm_z80_wbs_fpb_bg);
 -- ack_i(s)
-wb32_pci_master_ack_i <= (wb_cpu_ctrl_ack_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wb_sram_ack_o and wb32_pci_master_wb_sram_bg) or (wbs_flash_ack_o and wb32_pci_master_wbs_flash_bg) or (wbs_ddr_ack_o and wb32_pci_master_wbs_ddr_bg) or (wbs_mmu_ack_o and wb32_pci_master_wbs_mmu_bg) or (wbs_vga_ack_o and wb32_pci_master_wbs_vga_bg) or (wb_uart0_ack_o and wb32_pci_master_wb_uart0_bg) or (wb_uart1_ack_o and wb32_pci_master_wb_uart1_bg) or (wbs_vhdfd_ack_o and wb32_pci_master_wbs_vhdfd_bg) or (wbs_spimaster_ack_o and wb32_pci_master_wbs_spimaster_bg) or (wbs_fpb_ack_o and wb32_pci_master_wbs_fpb_bg);
-wbm_z80_ack_i <= (wb_cpu_ctrl_ack_o and wbm_z80_wb_cpu_ctrl_bg) or (wb_sram_ack_o and wbm_z80_wb_sram_bg) or (wbs_flash_ack_o and wbm_z80_wbs_flash_bg) or (wbs_ddr_ack_o and wbm_z80_wbs_ddr_bg) or (wbs_mmu_ack_o and wbm_z80_wbs_mmu_bg) or (wbs_vga_ack_o and wbm_z80_wbs_vga_bg) or (wb_uart0_ack_o and wbm_z80_wb_uart0_bg) or (wb_uart1_ack_o and wbm_z80_wb_uart1_bg) or (wbs_vhdfd_ack_o and wbm_z80_wbs_vhdfd_bg) or (wbs_spimaster_ack_o and wbm_z80_wbs_spimaster_bg) or (wbs_fpb_ack_o and wbm_z80_wbs_fpb_bg);
+wb32_pci_master_ack_i <= (wbs_sram_ack_o and wb32_pci_master_wbs_sram_bg) or (wbs_flash_ack_o and wb32_pci_master_wbs_flash_bg) or (wbs_ddr_ack_o and wb32_pci_master_wbs_ddr_bg) or (wbs_vga_ack_o and wb32_pci_master_wbs_vga_bg) or (wbs_kbd_ack_o and wb32_pci_master_wbs_kbd_bg) or (wbs_mmu_ack_o and wb32_pci_master_wbs_mmu_bg) or (wb_cpu_ctrl_ack_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbs_spimaster_ack_o and wb32_pci_master_wbs_spimaster_bg) or (wbs_vhdfd_ack_o and wb32_pci_master_wbs_vhdfd_bg) or (wbs_fpb_ack_o and wb32_pci_master_wbs_fpb_bg);
+wbm_z80_ack_i <= (wbs_sram_ack_o and wbm_z80_wbs_sram_bg) or (wbs_flash_ack_o and wbm_z80_wbs_flash_bg) or (wbs_ddr_ack_o and wbm_z80_wbs_ddr_bg) or (wbs_vga_ack_o and wbm_z80_wbs_vga_bg) or (wbs_kbd_ack_o and wbm_z80_wbs_kbd_bg) or (wbs_mmu_ack_o and wbm_z80_wbs_mmu_bg) or (wb_cpu_ctrl_ack_o and wbm_z80_wb_cpu_ctrl_bg) or (wbs_spimaster_ack_o and wbm_z80_wbs_spimaster_bg) or (wbs_vhdfd_ack_o and wbm_z80_wbs_vhdfd_bg) or (wbs_fpb_ack_o and wbm_z80_wbs_fpb_bg);
 -- rty_i(s)
 -- err_i(s)
 wb32_pci_master_err_i <= '0';
 -- sel_i(s)
-wb_cpu_ctrl_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_sel_o and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wb_sram_bg) or (wbm_z80_sel_o and wbm_z80_wb_sram_bg);
+wbs_sram_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_sram_bg) or (wbm_z80_sel_o and wbm_z80_wbs_sram_bg);
 wbs_flash_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_flash_bg) or (wbm_z80_sel_o and wbm_z80_wbs_flash_bg);
 wbs_ddr_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_sel_o and wbm_z80_wbs_ddr_bg);
-wbs_mmu_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_sel_o and wbm_z80_wbs_mmu_bg);
 wbs_vga_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_vga_bg) or (wbm_z80_sel_o and wbm_z80_wbs_vga_bg);
-wb_uart0_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wb_uart0_bg) or (wbm_z80_sel_o and wbm_z80_wb_uart0_bg);
-wb_uart1_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wb_uart1_bg) or (wbm_z80_sel_o and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_sel_o and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_sel_o and wbm_z80_wbs_kbd_bg);
+wbs_mmu_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_sel_o and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_sel_o and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_sel_o and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_sel_o and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_sel_i <= (wb32_pci_master_sel_o and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_sel_o and wbm_z80_wbs_fpb_bg);
 -- slave dat_i(s)
-wb_cpu_ctrl_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_dat_o and wbm_z80_wb_cpu_ctrl_bg);
-wb_sram_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wb_sram_bg) or (wbm_z80_dat_o and wbm_z80_wb_sram_bg);
+wbs_sram_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_sram_bg) or (wbm_z80_dat_o and wbm_z80_wbs_sram_bg);
 wbs_flash_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_flash_bg) or (wbm_z80_dat_o and wbm_z80_wbs_flash_bg);
 wbs_ddr_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_ddr_bg) or (wbm_z80_dat_o and wbm_z80_wbs_ddr_bg);
-wbs_mmu_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_dat_o and wbm_z80_wbs_mmu_bg);
 wbs_vga_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_vga_bg) or (wbm_z80_dat_o and wbm_z80_wbs_vga_bg);
-wb_uart0_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wb_uart0_bg) or (wbm_z80_dat_o and wbm_z80_wb_uart0_bg);
-wb_uart1_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wb_uart1_bg) or (wbm_z80_dat_o and wbm_z80_wb_uart1_bg);
-wbs_vhdfd_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_dat_o and wbm_z80_wbs_vhdfd_bg);
+wbs_kbd_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_kbd_bg) or (wbm_z80_dat_o and wbm_z80_wbs_kbd_bg);
+wbs_mmu_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_mmu_bg) or (wbm_z80_dat_o and wbm_z80_wbs_mmu_bg);
+wb_cpu_ctrl_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbm_z80_dat_o and wbm_z80_wb_cpu_ctrl_bg);
 wbs_spimaster_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_spimaster_bg) or (wbm_z80_dat_o and wbm_z80_wbs_spimaster_bg);
+wbs_vhdfd_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_vhdfd_bg) or (wbm_z80_dat_o and wbm_z80_wbs_vhdfd_bg);
 wbs_fpb_dat_i <= (wb32_pci_master_dat_o and wb32_pci_master_wbs_fpb_bg) or (wbm_z80_dat_o and wbm_z80_wbs_fpb_bg);
 -- master dat_i(s)
-wb32_pci_master_dat_i <= (wb_cpu_ctrl_dat_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wb_sram_dat_o and wb32_pci_master_wb_sram_bg) or (wbs_flash_dat_o and wb32_pci_master_wbs_flash_bg) or (wbs_ddr_dat_o and wb32_pci_master_wbs_ddr_bg) or (wbs_mmu_dat_o and wb32_pci_master_wbs_mmu_bg) or (wbs_vga_dat_o and wb32_pci_master_wbs_vga_bg) or (wb_uart0_dat_o and wb32_pci_master_wb_uart0_bg) or (wb_uart1_dat_o and wb32_pci_master_wb_uart1_bg) or (wbs_vhdfd_dat_o and wb32_pci_master_wbs_vhdfd_bg) or (wbs_spimaster_dat_o and wb32_pci_master_wbs_spimaster_bg) or (wbs_fpb_dat_o and wb32_pci_master_wbs_fpb_bg);
-wbm_z80_dat_i <= (wb_cpu_ctrl_dat_o and wbm_z80_wb_cpu_ctrl_bg) or (wb_sram_dat_o and wbm_z80_wb_sram_bg) or (wbs_flash_dat_o and wbm_z80_wbs_flash_bg) or (wbs_ddr_dat_o and wbm_z80_wbs_ddr_bg) or (wbs_mmu_dat_o and wbm_z80_wbs_mmu_bg) or (wbs_vga_dat_o and wbm_z80_wbs_vga_bg) or (wb_uart0_dat_o and wbm_z80_wb_uart0_bg) or (wb_uart1_dat_o and wbm_z80_wb_uart1_bg) or (wbs_vhdfd_dat_o and wbm_z80_wbs_vhdfd_bg) or (wbs_spimaster_dat_o and wbm_z80_wbs_spimaster_bg) or (wbs_fpb_dat_o and wbm_z80_wbs_fpb_bg);
+wb32_pci_master_dat_i <= (wbs_sram_dat_o and wb32_pci_master_wbs_sram_bg) or (wbs_flash_dat_o and wb32_pci_master_wbs_flash_bg) or (wbs_ddr_dat_o and wb32_pci_master_wbs_ddr_bg) or (wbs_vga_dat_o and wb32_pci_master_wbs_vga_bg) or (wbs_kbd_dat_o and wb32_pci_master_wbs_kbd_bg) or (wbs_mmu_dat_o and wb32_pci_master_wbs_mmu_bg) or (wb_cpu_ctrl_dat_o and wb32_pci_master_wb_cpu_ctrl_bg) or (wbs_spimaster_dat_o and wb32_pci_master_wbs_spimaster_bg) or (wbs_vhdfd_dat_o and wb32_pci_master_wbs_vhdfd_bg) or (wbs_fpb_dat_o and wb32_pci_master_wbs_fpb_bg);
+wbm_z80_dat_i <= (wbs_sram_dat_o and wbm_z80_wbs_sram_bg) or (wbs_flash_dat_o and wbm_z80_wbs_flash_bg) or (wbs_ddr_dat_o and wbm_z80_wbs_ddr_bg) or (wbs_vga_dat_o and wbm_z80_wbs_vga_bg) or (wbs_kbd_dat_o and wbm_z80_wbs_kbd_bg) or (wbs_mmu_dat_o and wbm_z80_wbs_mmu_bg) or (wb_cpu_ctrl_dat_o and wbm_z80_wb_cpu_ctrl_bg) or (wbs_spimaster_dat_o and wbm_z80_wbs_spimaster_bg) or (wbs_vhdfd_dat_o and wbm_z80_wbs_vhdfd_bg) or (wbs_fpb_dat_o and wbm_z80_wbs_fpb_bg);
 -- tgc_i
 -- tga_i
 end rtl;
